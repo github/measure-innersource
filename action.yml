@@ -1,0 +1,10 @@
+---
+name: "measure-innersource"
+author: "github"
+description: "A GitHub Action to measure and report how much innersource collaboration in a repo"
+runs:
+  using: "docker"
+  image: "docker://ghcr.io/github/measure_innersource:v1"
+branding:
+  icon: "bar-chart"
+  color: "white"

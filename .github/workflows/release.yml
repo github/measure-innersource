@@ -1,0 +1,50 @@
+---
+name: Release
+on:
+  workflow_dispatch:
+  pull_request_target:
+    types: [closed]
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  release:
+    permissions:
+      contents: write
+      pull-requests: read
+    uses: github/ospo-reusable-workflows/.github/workflows/release.yaml@10cfc2f9be5fce5e90150dfbffc7c0f4e68108ab
+    with:
+      publish: true
+      release-config-name: release-drafter.yml
+    secrets:
+      github-token: ${{ secrets.GITHUB_TOKEN }}
+  release_image:
+    needs: release
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    uses: github/ospo-reusable-workflows/.github/workflows/release-image.yaml@10cfc2f9be5fce5e90150dfbffc7c0f4e68108ab
+    with:
+      image-name: ${{ github.repository_owner }}/measure_innersource
+      full-tag: ${{ needs.release.outputs.full-tag }}
+      short-tag: ${{ needs.release.outputs.short-tag }}
+    secrets:
+      github-token: ${{ secrets.GITHUB_TOKEN }}
+      image-registry: ghcr.io
+      image-registry-username: ${{ github.actor }}
+      image-registry-password: ${{ secrets.GITHUB_TOKEN }}
+  release_discussion:
+    needs: release
+    permissions:
+      contents: read
+      discussions: write
+    uses: github/ospo-reusable-workflows/.github/workflows/release-discussion.yaml@10cfc2f9be5fce5e90150dfbffc7c0f4e68108ab
+    with:
+      full-tag: ${{ needs.release.outputs.full-tag }}
+      body: ${{ needs.release.outputs.body }}
+    secrets:
+      github-token: ${{ secrets.GITHUB_TOKEN }}
+      discussion-repository-id: ${{ secrets.RELEASE_DISCUSSION_REPOSITORY_ID }}
+      discussion-category-id: ${{ secrets.RELEASE_DISCUSSION_CATEGORY_ID }}
