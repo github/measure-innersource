@@ -15,8 +15,8 @@ All feedback regarding our GitHub Actions, as a whole, should be communicated th
 1. Create a repository to host this GitHub Action or select an existing repository. This is easiest with regards to permissions if it is the same repository as the one you want to measure innersource collaboration on.
 2. Select a best fit workflow file from the [examples directory](./docs/example-workflows.md) for your use case.
 3. Copy that example into your repository (from step 1) and into the proper directory for GitHub Actions: `.github/workflows/` directory with the file extension `.yml` (ie. `.github/workflows/measure-innersource.yml`)
-7. Commit the workflow file to the default branch (often `master` or `main`)
-8. Wait for the action to trigger based on the `schedule` entry or manually trigger the workflow as shown in the [documentation](https://docs.github.com/en/actions/using-workflows/manually-running-a-workflow).
+4. Commit the workflow file to the default branch (often `master` or `main`)
+5. Wait for the action to trigger based on the `schedule` entry or manually trigger the workflow as shown in the [documentation](https://docs.github.com/en/actions/using-workflows/manually-running-a-workflow).
 
 ### Configuration
 
@@ -37,18 +37,19 @@ This action can be configured to authenticate with GitHub App Installation or Pe
 
 ##### Personal Access Token (PAT)
 
-| field      | required | default | description                                                                                                           |
-| ---------- | -------- | ------- | --------------------------------------------------------------------------------------------------------------------- |
-| `GH_TOKEN` | True     | `""`    | The GitHub Token used to run the action.  Must have read access to the repository you are interested in measuring. |
+| field      | required | default | description                                                                                                       |
+| ---------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------- |
+| `GH_TOKEN` | True     | `""`    | The GitHub Token used to run the action. Must have read access to the repository you are interested in measuring. |
 
 #### Other Configuration Options
 
-| field                         | required | default                                    | description                                                                                                                                                                                                                                                                                                |
-| ----------------------------- | -------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GH_ENTERPRISE_URL`           | False    | `""`                                       | URL of GitHub Enterprise instance to use for auth instead of github.com                                                                                                                                                                                                                                    |
-| `RATE_LIMIT_BYPASS`           | False    | `false`                                    | If set to `true`, the rate limit will be bypassed. This is useful if being run on an local GitHub server with rate limiting disabled.                                                                                                                                                                      |
-| `OUTPUT_FILE`                 | False    | `innersource_report.md`                    | Output filename.                                                                                                                                                                                                                                                                                           |
-| `REPORT_TITLE`                | False    | `"InnerSource Report"`                     | Title to have on the report issue.                                                                                                                                                                                                                                                                         |
+| field               | required | default                 | description                                                                                                                           |
+| ------------------- | -------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `GH_ENTERPRISE_URL` | False    | `""`                    | URL of GitHub Enterprise instance to use for auth instead of github.com                                                               |
+| `RATE_LIMIT_BYPASS` | False    | `false`                 | If set to `true`, the rate limit will be bypassed. This is useful if being run on an local GitHub server with rate limiting disabled. |
+| `OUTPUT_FILE`       | False    | `innersource_report.md` | Output filename.                                                                                                                      |
+| `REPORT_TITLE`      | False    | `"InnerSource Report"`  | Title to have on the report issue.                                                                                                    |
+
 ## Contributions
 
 We would ❤️ contributions to improve this action. Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for how to get involved.
