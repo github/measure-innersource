@@ -115,10 +115,6 @@ def get_env_vars(test: bool = False) -> EnvVars:
         dotenv_path = join(dirname(__file__), ".env")
         load_dotenv(dotenv_path)
 
-    search_query = os.getenv("SEARCH_QUERY")
-    if not search_query:
-        raise ValueError("SEARCH_QUERY environment variable not set")
-
     gh_app_id = get_int_env_var("GH_APP_ID")
     gh_app_private_key_bytes = os.environ.get("GH_APP_PRIVATE_KEY", "").encode("utf8")
     gh_app_installation_id = get_int_env_var("GH_APP_INSTALLATION_ID")
