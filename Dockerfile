@@ -10,7 +10,7 @@ LABEL com.github.actions.name="measure-innersource" \
     org.opencontainers.image.source="https://github.com/github/measure-innersource" \
     org.opencontainers.image.documentation="https://github.com/github/measure-innersource" \
     org.opencontainers.image.vendor="GitHub" \
-    org.opencontainers.image.description="Measure and report on the InnerSource collaboration occuring in a given repository" \
+    org.opencontainers.image.description="Measure and report on the InnerSource collaboration occuring in a given repository"
 
 WORKDIR /action/workspace
 COPY requirements.txt *.py /action/workspace/
