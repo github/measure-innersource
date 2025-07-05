@@ -1,6 +1,9 @@
 # Output files
 innersource_report*.md
 
+# Input files
+org-data.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
