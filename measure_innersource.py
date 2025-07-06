@@ -1,11 +1,12 @@
 """A tool for measuring InnerSource collaboration in a given repository
 
-This script uses the GitHub API to search for issues/prs/discussions in a repository
-and measure the InnerSource collaboration occuring in those issues/prs/discussions.
+This script uses the GitHub API to search for issues/prs in a repository
+and measure the InnerSource collaboration occuring in those issues/prs.
 The results are then written to a markdown file.
 
 """
 
+import json
 import shutil
 from pathlib import Path
 
@@ -42,6 +43,8 @@ def main():  # pragma: no cover
     # Get the environment variables for use in the script
     env_vars = get_env_vars()
     token = env_vars.gh_token
+    owner = env_vars.owner
+    repo = env_vars.repo
     # report_title = env_vars.report_title
     # output_file = env_vars.output_file
     # rate_limit_bypass = env_vars.rate_limit_bypass
@@ -71,6 +74,87 @@ def main():  # pragma: no cover
 
     if github_connection:
         print("connection successful")
+
+        # fetch repository data
+        print(f"Fetching repository data for {owner}/{repo}...")
+        repo_data = github_connection.repository(owner, repo)
+        if not repo_data:
+            print(f"Unable to fetch repository {owner}/{repo} specified. Exiting.")
+            return
+
+        print(f"Repository {repo_data.full_name} found.")
+
+        # Read in the org data in org-data.json
+        org_data = None
+        org_data_path = Path("org-data.json")
+        if org_data_path.exists():
+            print("Reading in org data from org-data.json...")
+            with open(org_data_path, "r", encoding="utf-8") as org_file:
+                org_data = json.load(org_file)
+            print("Org data read successfully.")
+        else:
+            print("No org data found. InnerSource collaboration cannot be measured.")
+
+        if org_data:
+            print("Org data found. Measuring InnerSource collaboration...")
+        else:
+            print("No org data found. InnerSource collaboration cannot be measured.")
+            return
+
+        # Initialize contributor lists and team members list
+        all_contributors = []
+        innersource_contributors = []
+        team_members_that_own_the_repo = []
+
+        print("Analyzing first commit...")
+        commits = repo_data.commits()
+        # Paginate to the last page to get the oldest commit
+        # commits is a GitHubIterator, so you can use .count to get total, then get the last one
+        commit_list = list(commits)
+        first_commit = commit_list[-1]  # The last in the list is the oldest
+        original_commit_author = first_commit.author.login
+        original_commit_author_manager = org_data[original_commit_author]["manager"]
+        print(
+            f"Original commit author: {original_commit_author}, \
+with manager: {original_commit_author_manager}"
+        )
+        # Find all users that report up to the same manager as the original commit author
+        team_members_that_own_the_repo.append(original_commit_author)
+        team_members_that_own_the_repo.append(original_commit_author_manager)
+
+        for user, data in org_data.items():
+            if data["manager"] == original_commit_author_manager:
+                team_members_that_own_the_repo.append(user)
+
+        # for each username in team_members_that_own_the_repo,
+        # add everyone that has one of them listed as the manager
+        for user, data in org_data.items():
+            if (
+                user not in team_members_that_own_the_repo
+                and data["manager"] in team_members_that_own_the_repo
+            ):
+                team_members_that_own_the_repo.append(user)
+
+        # Remove duplicates from the team members list
+        team_members_that_own_the_repo = list(set(team_members_that_own_the_repo))
+        print(f"Team members that own the repo: {team_members_that_own_the_repo}")
+
+        # For each contributor, check if they are in the team that owns the repo list
+        # and if not, add them to the innersource contributors list
+        print("Analyzing all contributors in the repository...")
+        for contributor in repo_data.contributors():
+            all_contributors.append(contributor.login)
+            if (
+                contributor.login not in team_members_that_own_the_repo
+                and "[bot]" not in contributor.login
+            ):
+                innersource_contributors.append(contributor.login)
+
+        print(f"All contributors: {all_contributors}")
+        print(f"Innersource contributors: {innersource_contributors}")
+
+        # for each user in innersource_contributors,
+        # count how many contributions they have made
 
 
 if __name__ == "__main__":

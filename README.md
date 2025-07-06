@@ -1,4 +1,5 @@
 # Measure InnerSource tool
+This tool measures InnerSource collaboration in a given repository by analyzing issues, pull requests, and contributions.
 
 ## Sample Report
 
@@ -15,8 +16,9 @@ All feedback regarding our GitHub Actions, as a whole, should be communicated th
 1. Create a repository to host this GitHub Action or select an existing repository. This is easiest with regards to permissions if it is the same repository as the one you want to measure innersource collaboration on.
 2. Select a best fit workflow file from the [examples directory](./docs/example-workflows.md) for your use case.
 3. Copy that example into your repository (from step 1) and into the proper directory for GitHub Actions: `.github/workflows/` directory with the file extension `.yml` (ie. `.github/workflows/measure-innersource.yml`)
-4. Commit the workflow file to the default branch (often `master` or `main`)
-5. Wait for the action to trigger based on the `schedule` entry or manually trigger the workflow as shown in the [documentation](https://docs.github.com/en/actions/using-workflows/manually-running-a-workflow).
+4. Update the workflow file with the appropriate configuration options as described below. The required configuration options are `REPOSITORY`, `GH_APP_ID`, `GH_APP_INSTALLATION_ID`, and `GH_APP_PRIVATE_KEY` for GitHub App Installation authentication, or `REPOSITORY` and `GH_TOKEN` for Personal Access Token (PAT) authentication. The other configuration options are optional.
+5. Commit the workflow file to the default branch (often `master` or `main`)
+6. Wait for the action to trigger based on the `schedule` entry or manually trigger the workflow as shown in the [documentation](https://docs.github.com/en/actions/using-workflows/manually-running-a-workflow).
 
 ### Configuration
 
@@ -49,7 +51,9 @@ This action can be configured to authenticate with GitHub App Installation or Pe
 | `RATE_LIMIT_BYPASS` | False    | `false`                 | If set to `true`, the rate limit will be bypassed. This is useful if being run on an local GitHub server with rate limiting disabled. |
 | `OUTPUT_FILE`       | False    | `innersource_report.md` | Output filename.                                                                                                                      |
 | `REPORT_TITLE`      | False    | `"InnerSource Report"`  | Title to have on the report issue.                                                                                                    |
+| `REPOSITORY`        | True    | `""`                     | The name of the repository you are trying to measure. Format `owner/repo` ie. `github/measure-innersource`         |
 
+                                                      
 ## Contributions
 
 We would ❤️ contributions to improve this action. Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for how to get involved.

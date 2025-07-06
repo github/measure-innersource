@@ -30,6 +30,8 @@ class EnvVars:
         gh_token (str | None): GitHub personal access token (PAT) for API authentication
         ghe (str): The GitHub Enterprise URL to use for authentication
         report_title (str): The title of the report
+        owner (str): The owner of the repository to measure InnerSource collaboration in
+        repo (str): The name of the repository to measure InnerSource collaboration in
         output_file (str): The name of the file to write the report to
         rate_limit_bypass (bool): If set to TRUE, bypass the rate limit for the GitHub API
     """
@@ -43,6 +45,8 @@ class EnvVars:
         gh_token: str | None,
         ghe: str | None,
         report_title: str,
+        owner: str,
+        repo: str,
         output_file: str,
         rate_limit_bypass: bool = False,
     ):
@@ -53,6 +57,8 @@ class EnvVars:
         self.gh_token = gh_token
         self.ghe = ghe
         self.report_title = report_title
+        self.owner = owner
+        self.repo = repo
         self.output_file = output_file
         self.rate_limit_bypass = rate_limit_bypass
 
@@ -66,6 +72,8 @@ class EnvVars:
             f"{self.gh_token},"
             f"{self.ghe},"
             f"{self.report_title}"
+            f"{self.owner},"
+            f"{self.repo},"
             f"{self.output_file}"
             f"{self.rate_limit_bypass}"
         )
@@ -136,6 +144,15 @@ def get_env_vars(test: bool = False) -> EnvVars:
 
     ghe = os.getenv("GH_ENTERPRISE_URL", default="").strip()
 
+    repository = os.getenv("REPOSITORY", default="")
+    if not repository:
+        raise ValueError("REPOSITORY environment variable not set")
+    if "/" not in repository:
+        raise ValueError(
+            "REPOSITORY environment variable must be in the format 'owner/repo'"
+        )
+    owner, repo = repository.split("/", 1)
+
     report_title = os.getenv("REPORT_TITLE", "InnerSource Report")
     output_file = os.getenv("OUTPUT_FILE", "")
     rate_limit_bypass = get_bool_env_var("RATE_LIMIT_BYPASS", False)
@@ -148,6 +165,8 @@ def get_env_vars(test: bool = False) -> EnvVars:
         gh_token,
         ghe,
         report_title,
+        owner,
+        repo,
         output_file,
         rate_limit_bypass,
     )
