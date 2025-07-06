@@ -87,6 +87,7 @@ class TestGetEnvVars(unittest.TestCase):
             "GH_TOKEN": "",
             "GH_ENTERPRISE_URL": "",
             "OUTPUT_FILE": "",
+            "REPOSITORY": "test_owner/test_repo",
             "REPORT_TITLE": "",
             "RATE_LIMIT_BYPASS": "false",
         },
@@ -102,6 +103,8 @@ class TestGetEnvVars(unittest.TestCase):
             gh_token="",
             ghe="",
             report_title="",
+            owner="test_owner",
+            repo="test_repo",
             output_file="",
         )
         result = get_env_vars(True)
@@ -116,6 +119,7 @@ class TestGetEnvVars(unittest.TestCase):
             "GH_ENTERPRISE_URL": "",
             "GH_TOKEN": TOKEN,
             "OUTPUT_FILE": "",
+            "REPOSITORY": "test_owner/test_repo",
             "REPORT_TITLE": "",
         },
         clear=True,
@@ -130,6 +134,8 @@ class TestGetEnvVars(unittest.TestCase):
             gh_token=TOKEN,
             ghe="",
             report_title="",
+            owner="test_owner",
+            repo="test_repo",
             output_file="",
         )
         result = get_env_vars(True)
@@ -170,6 +176,7 @@ class TestGetEnvVars(unittest.TestCase):
             "GH_ENTERPRISE_URL": "",
             "OUTPUT_FILE": "innersource_report.md",
             "REPORT_TITLE": "InnerSource Report",
+            "REPOSITORY": "test_owner/test_repo",
             "RATE_LIMIT_BYPASS": "true",
         },
     )
@@ -183,6 +190,8 @@ class TestGetEnvVars(unittest.TestCase):
             gh_token=TOKEN,
             ghe="",
             report_title="InnerSource Report",
+            owner="test_owner",
+            repo="test_repo",
             output_file="innersource_report.md",
             rate_limit_bypass=True,
         )
@@ -196,6 +205,7 @@ class TestGetEnvVars(unittest.TestCase):
             "GH_APP_INSTALLATION_ID": "",
             "GH_APP_PRIVATE_KEY": "",
             "GH_TOKEN": "TOKEN",
+            "REPOSITORY": "test_owner/test_repo",
         },
         clear=True,
     )
@@ -209,6 +219,8 @@ class TestGetEnvVars(unittest.TestCase):
             gh_token="TOKEN",
             ghe="",
             report_title="InnerSource Report",
+            owner="test_owner",
+            repo="test_repo",
             output_file="",
             rate_limit_bypass=False,
         )

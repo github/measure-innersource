@@ -6,8 +6,8 @@ The results are then written to a markdown file.
 
 """
 
-import shutil
 import json
+import shutil
 from pathlib import Path
 
 from auth import auth_to_github, get_github_app_installation_token
