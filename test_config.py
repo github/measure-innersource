@@ -166,6 +166,45 @@ class TestGetEnvVars(unittest.TestCase):
         },
         clear=True,
     )
+    def test_get_env_vars_missing_repository(self):
+        """Test that an error is raised if the REPOSITORY environment variable is not set"""
+        with self.assertRaises(ValueError) as context_manager:
+            get_env_vars(True)
+        self.assertEqual(
+            str(context_manager.exception),
+            "REPOSITORY environment variable not set",
+        )
+
+    @patch.dict(
+        os.environ,
+        {
+            "GH_APP_ID": "",
+            "GH_APP_INSTALLATION_ID": "",
+            "GH_APP_PRIVATE_KEY": "",
+            "GH_TOKEN": TOKEN,
+            "REPOSITORY": "invalidrepo",
+        },
+        clear=True,
+    )
+    def test_get_env_vars_invalid_repository_format(self):
+        """Test that an error is raised if the REPOSITORY environment variable is incorrectly formatted"""
+        with self.assertRaises(ValueError) as context_manager:
+            get_env_vars(True)
+        self.assertEqual(
+            str(context_manager.exception),
+            "REPOSITORY environment variable must be in the format 'owner/repo'",
+        )
+
+    @patch.dict(
+        os.environ,
+        {
+            "GH_APP_ID": "",
+            "GH_APP_INSTALLATION_ID": "",
+            "GH_APP_PRIVATE_KEY": "",
+            "GH_TOKEN": TOKEN,
+        },
+        clear=True,
+    )
     @patch.dict(
         os.environ,
         {
