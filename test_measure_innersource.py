@@ -15,7 +15,7 @@ def test_evaluate_markdown_file_size_splits(tmp_path, monkeypatch):
     )
 
     # Dummy split function to create split files
-    def dummy_split(path, max_chars):
+    def dummy_split(_path, _max_chars):
         split_file = tmp_path / "test_0.md"
         split_file.write_text("split part", encoding="utf-8")
 

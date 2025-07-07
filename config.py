@@ -119,7 +119,7 @@ def get_env_vars(test: bool = False) -> EnvVars:
 
     Returns EnvVars object with all environment variables
     """
-    if not test:
+    if not test:  # pragma: no cover
         dotenv_path = join(dirname(__file__), ".env")
         load_dotenv(dotenv_path)
 
