@@ -1,4 +1,5 @@
 # Measure InnerSource tool
+
 This tool measures InnerSource collaboration in a given repository by analyzing issues, pull requests, and contributions.
 
 ## Sample Report
@@ -51,9 +52,8 @@ This action can be configured to authenticate with GitHub App Installation or Pe
 | `RATE_LIMIT_BYPASS` | False    | `false`                 | If set to `true`, the rate limit will be bypassed. This is useful if being run on an local GitHub server with rate limiting disabled. |
 | `OUTPUT_FILE`       | False    | `innersource_report.md` | Output filename.                                                                                                                      |
 | `REPORT_TITLE`      | False    | `"InnerSource Report"`  | Title to have on the report issue.                                                                                                    |
-| `REPOSITORY`        | True    | `""`                     | The name of the repository you are trying to measure. Format `owner/repo` ie. `github/measure-innersource`         |
+| `REPOSITORY`        | True     | `""`                    | The name of the repository you are trying to measure. Format `owner/repo` ie. `github/measure-innersource`                            |
 
-                                                      
 ## Contributions
 
 We would ❤️ contributions to improve this action. Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for how to get involved.

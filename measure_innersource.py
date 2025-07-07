@@ -158,4 +158,4 @@ with manager: {original_commit_author_manager}"
 
 
 if __name__ == "__main__":
-    main()
+    main()  # pragma: no cover
