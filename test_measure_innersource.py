@@ -1,6 +1,5 @@
+import measure_innersource as mi
 import pytest
-
-from measure_innersource import evaluate_markdown_file_size
 
 
 def test_evaluate_markdown_file_size_splits(tmp_path, monkeypatch):
@@ -11,7 +10,6 @@ def test_evaluate_markdown_file_size_splits(tmp_path, monkeypatch):
     orig_file.write_text("original content", encoding="utf-8")
 
     # Monkey-patch markdown_too_large_for_issue_body to simulate large file
-    import measure_innersource as mi
     monkeypatch.setattr(mi, "markdown_too_large_for_issue_body", lambda filename, max_chars: True)
 
     # Dummy split function to create split files
@@ -21,7 +19,7 @@ def test_evaluate_markdown_file_size_splits(tmp_path, monkeypatch):
     monkeypatch.setattr(mi, "split_markdown_file", dummy_split)
 
     # Call the function under test
-    evaluate_markdown_file_size("test.md")
+    mi.evaluate_markdown_file_size("test.md")
 
     # The original file should be moved to test_full.md
     full_file = tmp_path / "test_full.md"
@@ -45,14 +43,13 @@ def test_evaluate_markdown_file_size_no_split(tmp_path, monkeypatch):
     file.write_text("small", encoding="utf-8")
 
     # Monkey-patch markdown_too_large_for_issue_body to simulate small file
-    import measure_innersource as mi
     monkeypatch.setattr(mi, "markdown_too_large_for_issue_body", lambda filename, max_chars: False)
 
     # Monkey-patch split_markdown_file to fail if called
     monkeypatch.setattr(mi, "split_markdown_file", lambda *args, **kwargs: pytest.skip("split_markdown_file should not be called"))
 
     # Call the function under test; should not error
-    evaluate_markdown_file_size("test2.md")
+    mi.evaluate_markdown_file_size("test2.md")
 
     # The file should remain unchanged
     assert file.exists()
