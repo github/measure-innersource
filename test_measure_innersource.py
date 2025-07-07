@@ -10,12 +10,15 @@ def test_evaluate_markdown_file_size_splits(tmp_path, monkeypatch):
     orig_file.write_text("original content", encoding="utf-8")
 
     # Monkey-patch markdown_too_large_for_issue_body to simulate large file
-    monkeypatch.setattr(mi, "markdown_too_large_for_issue_body", lambda filename, max_chars: True)
+    monkeypatch.setattr(
+        mi, "markdown_too_large_for_issue_body", lambda filename, max_chars: True
+    )
 
     # Dummy split function to create split files
     def dummy_split(path, max_chars):
         split_file = tmp_path / "test_0.md"
         split_file.write_text("split part", encoding="utf-8")
+
     monkeypatch.setattr(mi, "split_markdown_file", dummy_split)
 
     # Call the function under test
@@ -43,10 +46,16 @@ def test_evaluate_markdown_file_size_no_split(tmp_path, monkeypatch):
     file.write_text("small", encoding="utf-8")
 
     # Monkey-patch markdown_too_large_for_issue_body to simulate small file
-    monkeypatch.setattr(mi, "markdown_too_large_for_issue_body", lambda filename, max_chars: False)
+    monkeypatch.setattr(
+        mi, "markdown_too_large_for_issue_body", lambda filename, max_chars: False
+    )
 
     # Monkey-patch split_markdown_file to fail if called
-    monkeypatch.setattr(mi, "split_markdown_file", lambda *args, **kwargs: pytest.skip("split_markdown_file should not be called"))
+    monkeypatch.setattr(
+        mi,
+        "split_markdown_file",
+        lambda *args, **kwargs: pytest.skip("split_markdown_file should not be called"),
+    )
 
     # Call the function under test; should not error
     mi.evaluate_markdown_file_size("test2.md")
