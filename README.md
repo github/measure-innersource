@@ -53,7 +53,7 @@ This action can be configured to authenticate with GitHub App Installation or Pe
 | `REPORT_TITLE`      | False    | `"InnerSource Report"`  | Title to have on the report issue.                                                                                                    |
 | `REPOSITORY`        | True    | `""`                     | The name of the repository you are trying to measure. Format `owner/repo` ie. `github/measure-innersource`         |
 
-                                                      
+
 ## Contributions
 
 We would ❤️ contributions to improve this action. Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for how to get involved.
