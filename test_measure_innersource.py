@@ -1,8 +1,11 @@
+"""Unit tests for measure_innersource.evaluate_markdown_file_size."""
+
 import measure_innersource as mi
 import pytest
 
 
 def test_evaluate_markdown_file_size_splits(tmp_path, monkeypatch):
+    """Test splitting of markdown file when it is too large for issue body."""
     # Switch working directory to tmp_path
     monkeypatch.chdir(tmp_path)
     # Create the original markdown file
@@ -39,6 +42,7 @@ def test_evaluate_markdown_file_size_splits(tmp_path, monkeypatch):
 
 
 def test_evaluate_markdown_file_size_no_split(tmp_path, monkeypatch):
+    """Test that small markdown file remains unchanged when size is within limits."""
     # Switch working directory to tmp_path
     monkeypatch.chdir(tmp_path)
     # Create a small markdown file
