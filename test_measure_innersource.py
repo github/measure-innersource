@@ -1,4 +1,3 @@
-import os
 import pytest
 
 from measure_innersource import evaluate_markdown_file_size
