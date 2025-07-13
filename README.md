@@ -22,16 +22,17 @@ The measure-innersource tool:
 This tool requires an `org-data.json` file in the root of the repository that contains organizational hierarchy information. This file maps GitHub usernames to their managers, allowing the tool to determine team boundaries.
 
 Example format of `org-data.json`:
+
 ```json
 {
   "username1": {
-    "manager": "manager1",
+    "manager": "manager1"
   },
   "username2": {
-    "manager": "manager1",
+    "manager": "manager1"
   },
   "username3": {
-    "manager": "manager2",
+    "manager": "manager2"
   }
 }
 ```
@@ -50,12 +51,14 @@ Below is an example of the generated InnerSource report:
 ### Original Commit Author: octocat (Manager: octoboss)
 
 ## Team Members that Own the Repo:
+
 - octocat
 - octoboss
 - octodev1
 - octodev2
 
 ## All Contributors:
+
 - octocat
 - octodev1
 - octodev2
@@ -63,14 +66,17 @@ Below is an example of the generated InnerSource report:
 - contributor2
 
 ## Innersource Contributors:
+
 - contributor1
 - contributor2
 
 ## Innersource Contribution Counts:
+
 - contributor1: 15 contributions
 - contributor2: 8 contributions
 
 ## Team Member Contribution Counts:
+
 - octocat: 25 contributions
 - octodev1: 12 contributions
 - octodev2: 5 contributions
@@ -88,10 +94,10 @@ All feedback regarding our GitHub Actions, as a whole, should be communicated th
 
 1. Create a repository to host this GitHub Action or select an existing repository. This is easiest with regards to permissions if it is the same repository as the one you want to measure innersource collaboration on.
 2. **Create an org-data.json file** in the root of your repository with your organization structure as described above.
-4. Copy the example below (in the next section) into your repository (from step 1) and into the proper directory for GitHub Actions: `.github/workflows/` directory with the file extension `.yml` (ie. `.github/workflows/measure-innersource.yml`)
-5. Update the workflow file with the appropriate configuration options as described below. The required configuration options are `REPOSITORY`, `GH_APP_ID`, `GH_APP_INSTALLATION_ID`, and `GH_APP_PRIVATE_KEY` for GitHub App Installation authentication, or `REPOSITORY` and `GH_TOKEN` for Personal Access Token (PAT) authentication. The other configuration options are optional.
-6. Commit the workflow file to the default branch (often `master` or `main`)
-7. Wait for the action to trigger based on the `schedule` entry or manually trigger the workflow as shown in the [documentation](https://docs.github.com/en/actions/using-workflows/manually-running-a-workflow).
+3. Copy the example below (in the next section) into your repository (from step 1) and into the proper directory for GitHub Actions: `.github/workflows/` directory with the file extension `.yml` (ie. `.github/workflows/measure-innersource.yml`)
+4. Update the workflow file with the appropriate configuration options as described below. The required configuration options are `REPOSITORY`, `GH_APP_ID`, `GH_APP_INSTALLATION_ID`, and `GH_APP_PRIVATE_KEY` for GitHub App Installation authentication, or `REPOSITORY` and `GH_TOKEN` for Personal Access Token (PAT) authentication. The other configuration options are optional.
+5. Commit the workflow file to the default branch (often `master` or `main`)
+6. Wait for the action to trigger based on the `schedule` entry or manually trigger the workflow as shown in the [documentation](https://docs.github.com/en/actions/using-workflows/manually-running-a-workflow).
 
 ### Basic Workflow Example
 
@@ -102,8 +108,8 @@ name: Measure InnerSource Collaboration
 
 on:
   schedule:
-    - cron: '0 0 * * 0'  # Run weekly on Sundays at midnight
-  workflow_dispatch:     # Allow manual triggers
+    - cron: "0 0 * * 0" # Run weekly on Sundays at midnight
+  workflow_dispatch: # Allow manual triggers
 
 jobs:
   measure-innersource:
@@ -111,7 +117,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Measure InnerSource
         uses: github/measure-innersource@v1
         env:
@@ -161,11 +167,13 @@ The generated report includes several key metrics:
 ### InnerSource Ratio
 
 This is calculated as:
+
 ```markdown
 InnerSource Ratio = (Total InnerSource Contributions) / (Total Contributions)
 ```
 
 Where:
+
 - Total InnerSource Contributions = Sum of all contributions from users outside the repository's owning team
 - Total Contributions = Sum of all contributions to the repository
 
@@ -174,6 +182,7 @@ A higher ratio indicates more cross-team collaboration.
 ### Team Ownership Determination
 
 The tool determines team ownership by:
+
 1. Identifying the original commit author
 2. Finding the original author's manager from org-data.json
 3. Including all users who report to the same manager in the team
