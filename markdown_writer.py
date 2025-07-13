@@ -47,8 +47,11 @@ def write_to_markdown(
             f"### Original Commit Author: {original_commit_author} (Manager: {original_commit_author_manager})\n\n"
         )
         report_file.write("## Team Members that Own the Repo:\n")
-        for member in team_members_that_own_the_repo:
-            report_file.write(f"- {member}\n")
+        if team_members_that_own_the_repo:
+            for member in team_members_that_own_the_repo:
+                report_file.write(f"- {member}\n")
+        else:
+            report_file.write("No team members available.\n")
 
         report_file.write("\n## All Contributors:\n")
         for contributor in all_contributors:
