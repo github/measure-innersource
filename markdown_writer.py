@@ -47,22 +47,41 @@ def write_to_markdown(
             f"### Original Commit Author: {original_commit_author} (Manager: {original_commit_author_manager})\n\n"
         )
         report_file.write("## Team Members that Own the Repo:\n")
-        for member in team_members_that_own_the_repo:
-            report_file.write(f"- {member}\n")
+        if team_members_that_own_the_repo:
+            for member in team_members_that_own_the_repo:
+                report_file.write(f"- {member}\n")
+        else:
+            report_file.write("No team members available.\n")
 
         report_file.write("\n## All Contributors:\n")
-        for contributor in all_contributors:
-            report_file.write(f"- {contributor}\n")
+        if all_contributors:
+            for contributor in all_contributors:
+                report_file.write(f"- {contributor}\n")
+        else:
+            report_file.write("No contributors found.\n")
 
         report_file.write("\n## Innersource Contributors:\n")
-        for contributor in innersource_contributors:
-            report_file.write(f"- {contributor}\n")
+        if innersource_contributors:
+            for contributor in innersource_contributors:
+                report_file.write(f"- {contributor}\n")
+        else:
+            report_file.write("No InnerSource contributors found.\n")
 
         report_file.write("\n## Innersource Contribution Counts:\n")
-        for contributor, count in innersource_contribution_counts.items():
-            report_file.write(f"- {contributor}: {count} contributions\n")
+        if innersource_contribution_counts:
+            for contributor, count in innersource_contribution_counts.items():
+                report_file.write(f"- {contributor}: {count} contributions\n")
+        else:
+            report_file.write("No InnerSource contribution counts available.\n")
 
         report_file.write("\n## Team Member Contribution Counts:\n")
-        for member, count in team_member_contribution_counts.items():
-            if count > 0:
-                report_file.write(f"- {member}: {count} contributions\n")
+        if team_member_contribution_counts:
+            found_contributions = False
+            for member, count in team_member_contribution_counts.items():
+                if count > 0:
+                    found_contributions = True
+                    report_file.write(f"- {member}: {count} contributions\n")
+            if not found_contributions:
+                report_file.write("No team member contributions found.\n")
+        else:
+            report_file.write("No team member contribution counts available.\n")
