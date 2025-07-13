@@ -13,6 +13,7 @@ from pathlib import Path
 from auth import auth_to_github, get_github_app_installation_token
 from config import get_env_vars
 from markdown_helpers import markdown_too_large_for_issue_body, split_markdown_file
+from markdown_writer import write_to_markdown
 
 
 def evaluate_markdown_file_size(output_file: str) -> None:
@@ -45,8 +46,8 @@ def main():  # pragma: no cover
     token = env_vars.gh_token
     owner = env_vars.owner
     repo = env_vars.repo
-    # report_title = env_vars.report_title
-    # output_file = env_vars.output_file
+    report_title = env_vars.report_title
+    output_file = env_vars.output_file
     # rate_limit_bypass = env_vars.rate_limit_bypass
 
     ghe = env_vars.ghe
@@ -153,8 +154,93 @@ with manager: {original_commit_author_manager}"
         print(f"All contributors: {all_contributors}")
         print(f"Innersource contributors: {innersource_contributors}")
 
-        # for each user in innersource_contributors,
-        # count how many contributions they have made
+        # Count contributions for each innersource contributor
+        innersource_contribution_counts = {}
+        print("Counting contributions for each innersource contributor...")
+        for contributor in innersource_contributors:
+            # Initialize counter for this contributor
+            innersource_contribution_counts[contributor] = 0
+
+            # Count commits by this contributor
+            for commit in commit_list:
+                if (
+                    hasattr(commit.author, "login")
+                    and commit.author.login == contributor
+                ):
+                    innersource_contribution_counts[contributor] += 1
+
+            # Add PR and issue counts
+            for pull in repo_data.pull_requests(state="all"):
+                if pull.user.login == contributor:
+                    innersource_contribution_counts[contributor] += 1
+
+            for issue in repo_data.issues(state="all"):
+                if hasattr(issue.user, "login") and issue.user.login == contributor:
+                    innersource_contribution_counts[contributor] += 1
+
+        print("Innersource contribution counts:")
+        for contributor, count in innersource_contribution_counts.items():
+            print(f"  {contributor}: {count} contributions")
+
+        # count contributions for each user in team_members_that_own_the_repo
+        team_member_contribution_counts = {}
+        print("Counting contributions for each team member that owns the repo...")
+        for member in team_members_that_own_the_repo:
+            # Initialize counter for this team member
+            team_member_contribution_counts[member] = 0
+
+            # Count commits by this team member
+            for commit in commit_list:
+                if hasattr(commit.author, "login") and commit.author.login == member:
+                    team_member_contribution_counts[member] += 1
+
+            # Add PR and issue counts
+            for pull in repo_data.pull_requests(state="all"):
+                if pull.user.login == member:
+                    team_member_contribution_counts[member] += 1
+
+            for issue in repo_data.issues(state="all"):
+                if hasattr(issue.user, "login") and issue.user.login == member:
+                    team_member_contribution_counts[member] += 1
+
+        print("Team member contribution counts:")
+        for member, count in team_member_contribution_counts.items():
+            if count > 0:
+                print(f"  {member}: {count} contributions")
+
+        # Calculate the ratio of innersource contributions to total contributions
+        total_contributions = sum(innersource_contribution_counts.values()) + sum(
+            team_member_contribution_counts.values()
+        )
+        if total_contributions > 0:
+            innersource_ratio = (
+                sum(innersource_contribution_counts.values()) / total_contributions
+            )
+        else:
+            innersource_ratio = 0
+
+        print(f"Innersource contribution ratio: {innersource_ratio:.2%}")
+
+        # Write the results to a markdown file using report_title and output_file
+        write_to_markdown(
+            report_title=report_title,
+            output_file=output_file,
+            innersource_ratio=innersource_ratio,
+            repo_data=repo_data,
+            original_commit_author=original_commit_author,
+            original_commit_author_manager=original_commit_author_manager,
+            team_members_that_own_the_repo=team_members_that_own_the_repo,
+            all_contributors=all_contributors,
+            innersource_contributors=innersource_contributors,
+            innersource_contribution_counts=innersource_contribution_counts,
+            team_member_contribution_counts=team_member_contribution_counts,
+        )
+
+        evaluate_markdown_file_size(output_file)
+        print(f"InnerSource report written to {output_file}")
+
+    else:
+        print("Failed to connect to GitHub. Exiting.")
 
 
 if __name__ == "__main__":
