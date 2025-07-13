@@ -59,8 +59,9 @@ def write_to_markdown(
             report_file.write(f"- {contributor}\n")
 
         report_file.write("\n## Innersource Contribution Counts:\n")
-        for contributor, count in innersource_contribution_counts.items():
-            report_file.write(f"- {contributor}: {count} contributions\n")
+        if innersource_contribution_counts:
+            for contributor, count in innersource_contribution_counts.items():
+                report_file.write(f"- {contributor}: {count} contributions\n")
 
         report_file.write("\n## Team Member Contribution Counts:\n")
         if team_member_contribution_counts is not None:
