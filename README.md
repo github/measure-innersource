@@ -1,8 +1,80 @@
 # Measure InnerSource tool
 
-This tool measures InnerSource collaboration in a given repository by analyzing issues, pull requests, and contributions.
+This tool measures InnerSource collaboration in a given repository by analyzing issues, pull requests, and code contributions. It helps organizations track and improve their InnerSource adoption by quantifying the collaboration between different teams and departments.
+
+## What is InnerSource?
+
+InnerSource applies open source principles and practices to internal development. It involves teams contributing to projects owned by other teams within the same organization, fostering collaboration, knowledge sharing, and code reuse across organizational boundaries. See [the InnerSource Commons Foundation's website](https://innersourcecommons.org) for more details.
+
+## How This Tool Works
+
+The measure-innersource tool:
+
+1. Identifies the original repository owner(s) and their organizational structure
+2. Analyzes all contributors to the repository
+3. Classifies contributors as either team members or InnerSource contributors (from outside the team responsible for the repository)
+4. Counts contributions (commits, PRs, issues) from both groups
+5. Calculates an InnerSource collaboration ratio
+6. Generates a detailed markdown report
+
+### Organization Data
+
+This tool requires an `org-data.json` file in the root of the repository that contains organizational hierarchy information. This file maps GitHub usernames to their managers, allowing the tool to determine team boundaries.
+
+Example format of `org-data.json`:
+```json
+{
+  "username1": {
+    "manager": "manager1",
+  },
+  "username2": {
+    "manager": "manager1",
+  },
+  "username3": {
+    "manager": "manager2",
+  }
+}
+```
 
 ## Sample Report
+
+Below is an example of the generated InnerSource report:
+
+```markdown
+# InnerSource Report
+
+## Repository: octocat/hello-world
+
+### InnerSource Ratio: 35.67%
+
+### Original Commit Author: octocat (Manager: octoboss)
+
+## Team Members that Own the Repo:
+- octocat
+- octoboss
+- octodev1
+- octodev2
+
+## All Contributors:
+- octocat
+- octodev1
+- octodev2
+- contributor1
+- contributor2
+
+## Innersource Contributors:
+- contributor1
+- contributor2
+
+## Innersource Contribution Counts:
+- contributor1: 15 contributions
+- contributor2: 8 contributions
+
+## Team Member Contribution Counts:
+- octocat: 25 contributions
+- octodev1: 12 contributions
+- octodev2: 5 contributions
+```
 
 ## Support
 
@@ -15,11 +87,39 @@ All feedback regarding our GitHub Actions, as a whole, should be communicated th
 ## Use as a GitHub Action
 
 1. Create a repository to host this GitHub Action or select an existing repository. This is easiest with regards to permissions if it is the same repository as the one you want to measure innersource collaboration on.
-2. Select a best fit workflow file from the [examples directory](./docs/example-workflows.md) for your use case.
-3. Copy that example into your repository (from step 1) and into the proper directory for GitHub Actions: `.github/workflows/` directory with the file extension `.yml` (ie. `.github/workflows/measure-innersource.yml`)
-4. Update the workflow file with the appropriate configuration options as described below. The required configuration options are `REPOSITORY`, `GH_APP_ID`, `GH_APP_INSTALLATION_ID`, and `GH_APP_PRIVATE_KEY` for GitHub App Installation authentication, or `REPOSITORY` and `GH_TOKEN` for Personal Access Token (PAT) authentication. The other configuration options are optional.
-5. Commit the workflow file to the default branch (often `master` or `main`)
-6. Wait for the action to trigger based on the `schedule` entry or manually trigger the workflow as shown in the [documentation](https://docs.github.com/en/actions/using-workflows/manually-running-a-workflow).
+2. **Create an org-data.json file** in the root of your repository with your organization structure as described above.
+4. Copy the example below (in the next section) into your repository (from step 1) and into the proper directory for GitHub Actions: `.github/workflows/` directory with the file extension `.yml` (ie. `.github/workflows/measure-innersource.yml`)
+5. Update the workflow file with the appropriate configuration options as described below. The required configuration options are `REPOSITORY`, `GH_APP_ID`, `GH_APP_INSTALLATION_ID`, and `GH_APP_PRIVATE_KEY` for GitHub App Installation authentication, or `REPOSITORY` and `GH_TOKEN` for Personal Access Token (PAT) authentication. The other configuration options are optional.
+6. Commit the workflow file to the default branch (often `master` or `main`)
+7. Wait for the action to trigger based on the `schedule` entry or manually trigger the workflow as shown in the [documentation](https://docs.github.com/en/actions/using-workflows/manually-running-a-workflow).
+
+### Basic Workflow Example
+
+Here's a simple example workflow file to get you started:
+
+```yaml
+name: Measure InnerSource Collaboration
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Run weekly on Sundays at midnight
+  workflow_dispatch:     # Allow manual triggers
+
+jobs:
+  measure-innersource:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Measure InnerSource
+        uses: github/measure-innersource@v1
+        env:
+          REPOSITORY: "owner/repo"
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          REPORT_TITLE: "Weekly InnerSource Report"
+          OUTPUT_FILE: "innersource_report.md"
+```
 
 ### Configuration
 
@@ -53,6 +153,45 @@ This action can be configured to authenticate with GitHub App Installation or Pe
 | `OUTPUT_FILE`       | False    | `innersource_report.md` | Output filename.                                                                                                                      |
 | `REPORT_TITLE`      | False    | `"InnerSource Report"`  | Title to have on the report issue.                                                                                                    |
 | `REPOSITORY`        | True     | `""`                    | The name of the repository you are trying to measure. Format `owner/repo` ie. `github/measure-innersource`                            |
+
+## Understanding the Results
+
+The generated report includes several key metrics:
+
+### InnerSource Ratio
+
+This is calculated as:
+```
+InnerSource Ratio = (Total InnerSource Contributions) / (Total Contributions)
+```
+
+Where:
+- Total InnerSource Contributions = Sum of all contributions from users outside the repository's owning team
+- Total Contributions = Sum of all contributions to the repository
+
+A higher ratio indicates more cross-team collaboration.
+
+### Team Ownership Determination
+
+The tool determines team ownership by:
+1. Identifying the original commit author
+2. Finding the original author's manager from org-data.json
+3. Including all users who report to the same manager in the team
+4. Including all users who report to anyone in the team
+
+### Use Cases
+
+- **Track InnerSource adoption over time**: Run this action on a schedule to see if your InnerSource initiative is gaining traction
+- **Compare InnerSource collaboration across repositories**: Run on multiple repositories to identify which ones have the most cross-team collaboration
+- **Identify key InnerSource contributors**: Recognize individuals who contribute across team boundaries
+- **Measure the impact of InnerSource initiatives**: Track the change in metrics before and after implementing InnerSource practices
+
+## Limitations
+
+- Requires accurate organization data in the org-data.json file
+- Cannot detect team relationships beyond what's specified in the org-data.json file
+- Historical team changes are not accounted for (uses current team structure only)
+- Bot accounts should have "[bot]" in their username to be excluded from calculations
 
 ## Contributions
 
