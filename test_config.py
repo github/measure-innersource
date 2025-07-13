@@ -265,7 +265,7 @@ class TestGetEnvVars(unittest.TestCase):
             self.assertEqual(output_file, "")
 
             # This is the condition in get_env_vars
-            if not output_file and not False:  # not test
+            if not output_file:
                 output_file = "InnerSource_Report.md"
             self.assertEqual(output_file, "InnerSource_Report.md")
 
