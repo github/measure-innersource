@@ -54,8 +54,9 @@ def write_to_markdown(
             report_file.write("No team members available.\n")
 
         report_file.write("\n## All Contributors:\n")
-        for contributor in all_contributors:
-            report_file.write(f"- {contributor}\n")
+        if all_contributors:
+            for contributor in all_contributors:
+                report_file.write(f"- {contributor}\n")
 
         report_file.write("\n## Innersource Contributors:\n")
         if innersource_contributors:
