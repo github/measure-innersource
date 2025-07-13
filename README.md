@@ -4,7 +4,7 @@ This tool measures InnerSource collaboration in a given repository by analyzing 
 
 ## What is InnerSource?
 
-InnerSource applies open source principles and practices to internal development. It involves teams contributing to projects owned by other teams within the same organization, fostering collaboration, knowledge sharing, and code reuse across organizational boundaries. See [the InnerSource Commons Foundation's website](https://innersourcecommons.org) for more details.
+InnerSource applies open source principles and practices to internal development. It involves teams contributing to projects owned by other teams within the same organization, fostering collaboration, knowledge sharing, and code reuse across organizational boundaries. See [the InnerSource Commons Foundation's site](https://innersourcecommons.org) for more details.
 
 ## How This Tool Works
 
@@ -15,7 +15,7 @@ The measure-innersource tool:
 3. Classifies contributors as either team members or InnerSource contributors (from outside the team responsible for the repository)
 4. Counts contributions (commits, PRs, issues) from both groups
 5. Calculates an InnerSource collaboration ratio
-6. Generates a detailed markdown report
+6. Generates a detailed Markdown report
 
 ### Organization Data
 
@@ -161,7 +161,7 @@ The generated report includes several key metrics:
 ### InnerSource Ratio
 
 This is calculated as:
-```
+```markdown
 InnerSource Ratio = (Total InnerSource Contributions) / (Total Contributions)
 ```
 
