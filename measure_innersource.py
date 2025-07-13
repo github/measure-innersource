@@ -154,6 +154,82 @@ with manager: {original_commit_author_manager}"
         print(f"All contributors: {all_contributors}")
         print(f"Innersource contributors: {innersource_contributors}")
 
+        # Process data in chunks to avoid memory issues while maintaining performance
+        chunk_size = env_vars.chunk_size
+        print(f"Using chunk size of {chunk_size} for data processing")
+
+        print("Pre-processing contribution data...")
+
+        # Create mapping of commit authors to commit counts
+        print("Processing commits...")
+        commit_author_counts = {}
+        for commit in commit_list:
+            if hasattr(commit.author, "login"):
+                author = commit.author.login
+                commit_author_counts[author] = commit_author_counts.get(author, 0) + 1
+
+        # Process pull requests in chunks
+        print("Processing pull requests in chunks...")
+        pr_author_counts = {}
+        total_prs = 0
+
+        # GitHub API returns an iterator that internally handles pagination
+        # We'll manually chunk it to avoid loading everything at once
+        pulls_iterator = repo_data.pull_requests(state="all")
+        while True:
+            # Process a chunk of pull requests
+            chunk = []
+            for _ in range(chunk_size):
+                try:
+                    chunk.append(next(pulls_iterator))
+                except StopIteration:
+                    break
+
+            if not chunk:
+                break
+
+            # Update counts for this chunk
+            for pull in chunk:
+                if hasattr(pull.user, "login"):
+                    author = pull.user.login
+                    pr_author_counts[author] = pr_author_counts.get(author, 0) + 1
+
+            total_prs += len(chunk)
+            print(f"  Processed {total_prs} pull requests so far...")
+
+        print(f"Found and processed {total_prs} pull requests")
+
+        # Process issues in chunks
+        print("Processing issues in chunks...")
+        issue_author_counts = {}
+        total_issues = 0
+
+        # GitHub API returns an iterator that internally handles pagination
+        # We'll manually chunk it to avoid loading everything at once
+        issues_iterator = repo_data.issues(state="all")
+        while True:
+            # Process a chunk of issues
+            chunk = []
+            for _ in range(chunk_size):
+                try:
+                    chunk.append(next(issues_iterator))
+                except StopIteration:
+                    break
+
+            if not chunk:
+                break
+
+            # Update counts for this chunk
+            for issue in chunk:
+                if hasattr(issue.user, "login"):
+                    author = issue.user.login
+                    issue_author_counts[author] = issue_author_counts.get(author, 0) + 1
+
+            total_issues += len(chunk)
+            print(f"  Processed {total_issues} issues so far...")
+
+        print(f"Found and processed {total_issues} issues")
+
         # Count contributions for each innersource contributor
         innersource_contribution_counts = {}
         print("Counting contributions for each innersource contributor...")

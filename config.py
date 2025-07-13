@@ -34,6 +34,7 @@ class EnvVars:
         repo (str): The name of the repository to measure InnerSource collaboration in
         output_file (str): The name of the file to write the report to
         rate_limit_bypass (bool): If set to TRUE, bypass the rate limit for the GitHub API
+        chunk_size (int): The number of items to process at once when fetching data (for memory efficiency)
     """
 
     def __init__(
@@ -49,6 +50,7 @@ class EnvVars:
         repo: str,
         output_file: str,
         rate_limit_bypass: bool = False,
+        chunk_size: int = 100,
     ):
         self.gh_app_id = gh_app_id
         self.gh_app_installation_id = gh_app_installation_id
@@ -61,6 +63,7 @@ class EnvVars:
         self.repo = repo
         self.output_file = output_file
         self.rate_limit_bypass = rate_limit_bypass
+        self.chunk_size = chunk_size
 
     def __repr__(self):
         return (
@@ -75,7 +78,9 @@ class EnvVars:
             f"{self.owner},"
             f"{self.repo},"
             f"{self.output_file},"
-            f"{self.rate_limit_bypass}"
+            f"{self.rate_limit_bypass},"
+            f"{self.chunk_size}"
+            ")"
         )
 
 
@@ -157,6 +162,17 @@ def get_env_vars(test: bool = False) -> EnvVars:
     output_file = os.getenv("OUTPUT_FILE", "InnerSource_Report.md")
     rate_limit_bypass = get_bool_env_var("RATE_LIMIT_BYPASS", False)
 
+    # Get the chunk size for processing data in batches (for memory efficiency)
+    chunk_size_str = os.getenv("CHUNK_SIZE", "100")
+    try:
+        chunk_size = int(chunk_size_str)
+        # Ensure a reasonable minimum chunk size
+        if chunk_size < 10:
+            chunk_size = 10
+    except ValueError:
+        # Default to 100 if not a valid integer
+        chunk_size = 100
+
     return EnvVars(
         gh_app_id,
         gh_app_installation_id,
@@ -169,4 +185,5 @@ def get_env_vars(test: bool = False) -> EnvVars:
         repo,
         output_file,
         rate_limit_bypass,
+        chunk_size,
     )

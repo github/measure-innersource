@@ -53,6 +53,7 @@ This action can be configured to authenticate with GitHub App Installation or Pe
 | `OUTPUT_FILE`       | False    | `innersource_report.md` | Output filename.                                                                                                                      |
 | `REPORT_TITLE`      | False    | `"InnerSource Report"`  | Title to have on the report issue.                                                                                                    |
 | `REPOSITORY`        | True     | `""`                    | The name of the repository you are trying to measure. Format `owner/repo` ie. `github/measure-innersource`                            |
+| `CHUNK_SIZE`        | False    | `100`                   | Number of items to process at once when fetching data. Increasing can improve performance but uses more memory. Minimum value is 10.  |
 
 ## Contributions
 
