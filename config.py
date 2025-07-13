@@ -167,8 +167,7 @@ def get_env_vars(test: bool = False) -> EnvVars:
     try:
         chunk_size = int(chunk_size_str)
         # Ensure a reasonable minimum chunk size
-        if chunk_size < 10:
-            chunk_size = 10
+        chunk_size = max(chunk_size, 10)
     except ValueError:
         # Default to 100 if not a valid integer
         chunk_size = 100
