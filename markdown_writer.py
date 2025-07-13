@@ -58,8 +58,11 @@ def write_to_markdown(
             report_file.write(f"- {contributor}\n")
 
         report_file.write("\n## Innersource Contributors:\n")
-        for contributor in innersource_contributors:
-            report_file.write(f"- {contributor}\n")
+        if innersource_contributors:
+            for contributor in innersource_contributors:
+                report_file.write(f"- {contributor}\n")
+        else:
+            report_file.write("No InnerSource contributors found.\n")
 
         report_file.write("\n## Innersource Contribution Counts:\n")
         if innersource_contribution_counts:
