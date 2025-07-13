@@ -71,10 +71,10 @@ class EnvVars:
             f"{self.gh_app_enterprise_only},"
             f"{self.gh_token},"
             f"{self.ghe},"
-            f"{self.report_title}"
+            f"{self.report_title},"
             f"{self.owner},"
             f"{self.repo},"
-            f"{self.output_file}"
+            f"{self.output_file},"
             f"{self.rate_limit_bypass}"
         )
 
@@ -154,7 +154,9 @@ def get_env_vars(test: bool = False) -> EnvVars:
     owner, repo = repository.split("/", 1)
 
     report_title = os.getenv("REPORT_TITLE", "InnerSource Report")
-    output_file = os.getenv("OUTPUT_FILE", "")
+    output_file = os.getenv("OUTPUT_FILE")
+    if not output_file:
+        output_file = "innersource_report.md"
     rate_limit_bypass = get_bool_env_var("RATE_LIMIT_BYPASS", False)
 
     return EnvVars(

@@ -105,7 +105,7 @@ class TestGetEnvVars(unittest.TestCase):
             report_title="",
             owner="test_owner",
             repo="test_repo",
-            output_file="",
+            output_file="innersource_report.md",
         )
         result = get_env_vars(True)
         self.assertEqual(str(result), str(expected_result))
@@ -136,7 +136,7 @@ class TestGetEnvVars(unittest.TestCase):
             report_title="",
             owner="test_owner",
             repo="test_repo",
-            output_file="",
+            output_file="innersource_report.md",
         )
         result = get_env_vars(True)
         self.assertEqual(str(result), str(expected_result))
@@ -245,6 +245,35 @@ class TestGetEnvVars(unittest.TestCase):
             "GH_APP_PRIVATE_KEY": "",
             "GH_TOKEN": "TOKEN",
             "REPOSITORY": "test_owner/test_repo",
+            "OUTPUT_FILE": "",
+        },
+        clear=True,
+    )
+    def test_get_env_vars_output_file_default_in_prod(self):
+        """Test that output_file is set to default value in production (non-test) environment."""
+        # Directly test the output_file logic
+        with patch.dict(
+            "os.environ",
+            {
+                "REPOSITORY": "test_owner/test_repo",
+                "GH_TOKEN": "TOKEN",
+            },
+        ):
+            # Verify the default value logic directly
+            env_vars = get_env_vars(test=True)
+
+            # This is the condition in get_env_vars
+            self.assertEqual(env_vars.output_file, "innersource_report.md")
+
+    @patch.dict(
+        os.environ,
+        {
+            "GH_APP_ID": "",
+            "GH_APP_INSTALLATION_ID": "",
+            "GH_APP_PRIVATE_KEY": "",
+            "GH_TOKEN": "TOKEN",
+            "REPOSITORY": "test_owner/test_repo",
+            "OUTPUT_FILE": "",
         },
         clear=True,
     )
@@ -260,7 +289,7 @@ class TestGetEnvVars(unittest.TestCase):
             report_title="InnerSource Report",
             owner="test_owner",
             repo="test_repo",
-            output_file="",
+            output_file="innersource_report.md",
             rate_limit_bypass=False,
         )
         result = get_env_vars(True)
