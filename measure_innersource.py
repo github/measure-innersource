@@ -154,6 +154,13 @@ with manager: {original_commit_author_manager}"
         print(f"All contributors: {all_contributors}")
         print(f"Innersource contributors: {innersource_contributors}")
 
+        # Fetch all PRs and issues once
+        print("Fetching all pull requests...")
+        all_pulls = list(repo_data.pull_requests(state="all"))
+
+        print("Fetching all issues...")
+        all_issues = list(repo_data.issues(state="all"))
+
         # Count contributions for each innersource contributor
         innersource_contribution_counts = {}
         print("Counting contributions for each innersource contributor...")
@@ -169,12 +176,13 @@ with manager: {original_commit_author_manager}"
                 ):
                     innersource_contribution_counts[contributor] += 1
 
-            # Add PR and issue counts
-            for pull in repo_data.pull_requests(state="all"):
+            # Add PR counts
+            for pull in all_pulls:
                 if pull.user.login == contributor:
                     innersource_contribution_counts[contributor] += 1
 
-            for issue in repo_data.issues(state="all"):
+            # Add issue counts
+            for issue in all_issues:
                 if hasattr(issue.user, "login") and issue.user.login == contributor:
                     innersource_contribution_counts[contributor] += 1
 
@@ -194,12 +202,13 @@ with manager: {original_commit_author_manager}"
                 if hasattr(commit.author, "login") and commit.author.login == member:
                     team_member_contribution_counts[member] += 1
 
-            # Add PR and issue counts
-            for pull in repo_data.pull_requests(state="all"):
+            # Add PR counts
+            for pull in all_pulls:
                 if pull.user.login == member:
                     team_member_contribution_counts[member] += 1
 
-            for issue in repo_data.issues(state="all"):
+            # Add issue counts
+            for issue in all_issues:
                 if hasattr(issue.user, "login") and issue.user.login == member:
                     team_member_contribution_counts[member] += 1
 
