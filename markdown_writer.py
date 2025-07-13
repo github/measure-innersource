@@ -42,6 +42,7 @@ def write_to_markdown(
             report_file.write("no op\n\n")
             return
         report_file.write(f"## Repository: {repo_data.full_name}\n\n")
+        innersource_ratio = innersource_ratio if innersource_ratio is not None else 0.0
         report_file.write(f"### InnerSource Ratio: {innersource_ratio:.2%}\n\n")
         report_file.write(
             f"### Original Commit Author: {original_commit_author} (Manager: {original_commit_author_manager})\n\n"
