@@ -63,6 +63,7 @@ def write_to_markdown(
             report_file.write(f"- {contributor}: {count} contributions\n")
 
         report_file.write("\n## Team Member Contribution Counts:\n")
-        for member, count in team_member_contribution_counts.items():
-            if count > 0:
-                report_file.write(f"- {member}: {count} contributions\n")
+        if team_member_contribution_counts is not None:
+            for member, count in team_member_contribution_counts.items():
+                if count > 0:
+                    report_file.write(f"- {member}: {count} contributions\n")
