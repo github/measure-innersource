@@ -119,31 +119,36 @@ def main():  # pragma: no cover
             f"Original commit author: {original_commit_author}, \
 with manager: {original_commit_author_manager}"
         )
-        
+
         # Create a dictionary mapping users to their managers for faster lookups
         user_to_manager = {}
         manager_to_reports = {}
-        
+
         for user, data in org_data.items():
             manager = data["manager"]
             user_to_manager[user] = manager
-            
+
             # Also create reverse mapping of manager to direct reports
             if manager not in manager_to_reports:
                 manager_to_reports[manager] = []
             manager_to_reports[manager].append(user)
-        
+
         # Find all users that report up to the same manager as the original commit author
         team_members_that_own_the_repo.append(original_commit_author)
         team_members_that_own_the_repo.append(original_commit_author_manager)
 
         # Add all users reporting to the same manager
         if original_commit_author_manager in manager_to_reports:
-            team_members_that_own_the_repo.extend(manager_to_reports[original_commit_author_manager])
+            team_members_that_own_the_repo.extend(
+                manager_to_reports[original_commit_author_manager]
+            )
 
         # Add everyone that has one of the team members listed as their manager
         for user, manager in user_to_manager.items():
-            if manager in team_members_that_own_the_repo and user not in team_members_that_own_the_repo:
+            if (
+                manager in team_members_that_own_the_repo
+                and user not in team_members_that_own_the_repo
+            ):
                 team_members_that_own_the_repo.append(user)
 
         # Remove duplicates from the team members list
@@ -168,49 +173,55 @@ with manager: {original_commit_author_manager}"
         print("Fetching all pull requests...")
         all_pulls = list(repo_data.pull_requests(state="all"))
         print(f"Found {len(all_pulls)} pull requests")
-        
+
         print("Fetching all issues...")
         all_issues = list(repo_data.issues(state="all"))
         print(f"Found {len(all_issues)} issues")
 
         # Pre-process all data to create mappings of user to contribution counts
         print("Pre-processing contribution data...")
-        
+
         # Create mapping of commit authors to commit counts
         commit_author_counts = {}
         for commit in commit_list:
             if hasattr(commit.author, "login"):
                 author = commit.author.login
                 commit_author_counts[author] = commit_author_counts.get(author, 0) + 1
-        
+
         # Create mapping of PR authors to PR counts
         pr_author_counts = {}
         for pull in all_pulls:
             author = pull.user.login
             pr_author_counts[author] = pr_author_counts.get(author, 0) + 1
-        
+
         # Create mapping of issue authors to issue counts
         issue_author_counts = {}
         for issue in all_issues:
             if hasattr(issue.user, "login"):
                 author = issue.user.login
                 issue_author_counts[author] = issue_author_counts.get(author, 0) + 1
-        
+
         # Count contributions for each innersource contributor
         innersource_contribution_counts = {}
         print("Counting contributions for each innersource contributor...")
         for contributor in innersource_contributors:
             # Initialize counter for this contributor
             innersource_contribution_counts[contributor] = 0
-            
+
             # Add commit counts
-            innersource_contribution_counts[contributor] += commit_author_counts.get(contributor, 0)
-            
+            innersource_contribution_counts[contributor] += commit_author_counts.get(
+                contributor, 0
+            )
+
             # Add PR counts
-            innersource_contribution_counts[contributor] += pr_author_counts.get(contributor, 0)
-            
+            innersource_contribution_counts[contributor] += pr_author_counts.get(
+                contributor, 0
+            )
+
             # Add issue counts
-            innersource_contribution_counts[contributor] += issue_author_counts.get(contributor, 0)
+            innersource_contribution_counts[contributor] += issue_author_counts.get(
+                contributor, 0
+            )
 
         print("Innersource contribution counts:")
         for contributor, count in innersource_contribution_counts.items():
@@ -222,15 +233,19 @@ with manager: {original_commit_author_manager}"
         for member in team_members_that_own_the_repo:
             # Initialize counter for this team member
             team_member_contribution_counts[member] = 0
-            
+
             # Add commit counts
-            team_member_contribution_counts[member] += commit_author_counts.get(member, 0)
-            
+            team_member_contribution_counts[member] += commit_author_counts.get(
+                member, 0
+            )
+
             # Add PR counts
             team_member_contribution_counts[member] += pr_author_counts.get(member, 0)
-            
+
             # Add issue counts
-            team_member_contribution_counts[member] += issue_author_counts.get(member, 0)
+            team_member_contribution_counts[member] += issue_author_counts.get(
+                member, 0
+            )
 
         print("Team member contribution counts:")
         for member, count in team_member_contribution_counts.items():
