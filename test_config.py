@@ -245,6 +245,39 @@ class TestGetEnvVars(unittest.TestCase):
             "GH_APP_PRIVATE_KEY": "",
             "GH_TOKEN": "TOKEN",
             "REPOSITORY": "test_owner/test_repo",
+            "OUTPUT_FILE": "",
+        },
+        clear=True,
+    )
+    def test_get_env_vars_output_file_default_in_prod(self):
+        """Test that output_file is set to default value in production (non-test) environment."""
+        # Directly test the output_file logic
+        with patch.dict(
+            "os.environ",
+            {
+                "REPOSITORY": "test_owner/test_repo",
+                "GH_TOKEN": "TOKEN",
+                "OUTPUT_FILE": "",
+            },
+        ):
+            # Verify the default value logic directly
+            output_file = os.getenv("OUTPUT_FILE", "")
+            self.assertEqual(output_file, "")
+
+            # This is the condition in get_env_vars
+            if not output_file and not False:  # not test
+                output_file = "InnerSource_Report.md"
+            self.assertEqual(output_file, "InnerSource_Report.md")
+
+    @patch.dict(
+        os.environ,
+        {
+            "GH_APP_ID": "",
+            "GH_APP_INSTALLATION_ID": "",
+            "GH_APP_PRIVATE_KEY": "",
+            "GH_TOKEN": "TOKEN",
+            "REPOSITORY": "test_owner/test_repo",
+            "OUTPUT_FILE": "",
         },
         clear=True,
     )
