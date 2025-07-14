@@ -119,20 +119,34 @@ def main():  # pragma: no cover
             f"Original commit author: {original_commit_author}, \
 with manager: {original_commit_author_manager}"
         )
+        # Create a dictionary mapping users to their managers for faster lookups
+        user_to_manager = {}
+        manager_to_reports = {}
+
+        for user, data in org_data.items():
+            manager = data["manager"]
+            user_to_manager[user] = manager
+
+            # Also create reverse mapping of manager to direct reports
+            if manager not in manager_to_reports:
+                manager_to_reports[manager] = []
+            manager_to_reports[manager].append(user)
+
         # Find all users that report up to the same manager as the original commit author
         team_members_that_own_the_repo.append(original_commit_author)
         team_members_that_own_the_repo.append(original_commit_author_manager)
 
-        for user, data in org_data.items():
-            if data["manager"] == original_commit_author_manager:
-                team_members_that_own_the_repo.append(user)
+        # Add all users reporting to the same manager
+        if original_commit_author_manager in manager_to_reports:
+            team_members_that_own_the_repo.extend(
+                manager_to_reports[original_commit_author_manager]
+            )
 
-        # for each username in team_members_that_own_the_repo,
-        # add everyone that has one of them listed as the manager
-        for user, data in org_data.items():
+        # Add everyone that has one of the team members listed as their manager
+        for user, manager in user_to_manager.items():
             if (
-                user not in team_members_that_own_the_repo
-                and data["manager"] in team_members_that_own_the_repo
+                manager in team_members_that_own_the_repo
+                and user not in team_members_that_own_the_repo
             ):
                 team_members_that_own_the_repo.append(user)
 
@@ -230,54 +244,51 @@ with manager: {original_commit_author_manager}"
 
         print(f"Found and processed {total_issues} issues")
 
-        # Count contributions for each innersource contributor
+        # Count contributions for each innersource contributor using precompiled dictionaries
         innersource_contribution_counts = {}
         print("Counting contributions for each innersource contributor...")
         for contributor in innersource_contributors:
             # Initialize counter for this contributor
             innersource_contribution_counts[contributor] = 0
 
-            # Count commits by this contributor
-            for commit in commit_list:
-                if (
-                    hasattr(commit.author, "login")
-                    and commit.author.login == contributor
-                ):
-                    innersource_contribution_counts[contributor] += 1
+            # Add commit counts from the precompiled dictionary
+            innersource_contribution_counts[contributor] += commit_author_counts.get(
+                contributor, 0
+            )
 
-            # Add PR and issue counts
-            for pull in repo_data.pull_requests(state="all"):
-                if pull.user.login == contributor:
-                    innersource_contribution_counts[contributor] += 1
+            # Add PR counts from the precompiled dictionary
+            innersource_contribution_counts[contributor] += pr_author_counts.get(
+                contributor, 0
+            )
 
-            for issue in repo_data.issues(state="all"):
-                if hasattr(issue.user, "login") and issue.user.login == contributor:
-                    innersource_contribution_counts[contributor] += 1
+            # Add issue counts from the precompiled dictionary
+            innersource_contribution_counts[contributor] += issue_author_counts.get(
+                contributor, 0
+            )
 
         print("Innersource contribution counts:")
         for contributor, count in innersource_contribution_counts.items():
             print(f"  {contributor}: {count} contributions")
 
-        # count contributions for each user in team_members_that_own_the_repo
+        # Count contributions for each team member using precompiled dictionaries
         team_member_contribution_counts = {}
         print("Counting contributions for each team member that owns the repo...")
         for member in team_members_that_own_the_repo:
             # Initialize counter for this team member
             team_member_contribution_counts[member] = 0
 
-            # Count commits by this team member
-            for commit in commit_list:
-                if hasattr(commit.author, "login") and commit.author.login == member:
-                    team_member_contribution_counts[member] += 1
+            # Add commit counts from the precompiled dictionary
+            team_member_contribution_counts[member] += commit_author_counts.get(
+                member, 0
+            )
 
-            # Add PR and issue counts
-            for pull in repo_data.pull_requests(state="all"):
-                if pull.user.login == member:
-                    team_member_contribution_counts[member] += 1
+            # Add PR counts from the precompiled dictionary
+            team_member_contribution_counts[member] += pr_author_counts.get(member, 0)
 
-            for issue in repo_data.issues(state="all"):
-                if hasattr(issue.user, "login") and issue.user.login == member:
-                    team_member_contribution_counts[member] += 1
+            # Add issue counts from the precompiled dictionary
+            team_member_contribution_counts[member] += issue_author_counts.get(
+                member, 0
+            )
 
         print("Team member contribution counts:")
         for member, count in team_member_contribution_counts.items():
