@@ -105,7 +105,7 @@ class TestGetEnvVars(unittest.TestCase):
             report_title="",
             owner="test_owner",
             repo="test_repo",
-            output_file="",
+            output_file="innersource_report.md",
         )
         result = get_env_vars(True)
         self.assertEqual(str(result), str(expected_result))
@@ -136,7 +136,7 @@ class TestGetEnvVars(unittest.TestCase):
             report_title="",
             owner="test_owner",
             repo="test_repo",
-            output_file="",
+            output_file="innersource_report.md",
         )
         result = get_env_vars(True)
         self.assertEqual(str(result), str(expected_result))
@@ -257,17 +257,13 @@ class TestGetEnvVars(unittest.TestCase):
             {
                 "REPOSITORY": "test_owner/test_repo",
                 "GH_TOKEN": "TOKEN",
-                "OUTPUT_FILE": "",
             },
         ):
             # Verify the default value logic directly
-            output_file = os.getenv("OUTPUT_FILE", "")
-            self.assertEqual(output_file, "")
+            env_vars = get_env_vars(test=True)
 
             # This is the condition in get_env_vars
-            if not output_file:
-                output_file = "InnerSource_Report.md"
-            self.assertEqual(output_file, "InnerSource_Report.md")
+            self.assertEqual(env_vars.output_file, "innersource_report.md")
 
     @patch.dict(
         os.environ,
@@ -293,7 +289,7 @@ class TestGetEnvVars(unittest.TestCase):
             report_title="InnerSource Report",
             owner="test_owner",
             repo="test_repo",
-            output_file="",
+            output_file="innersource_report.md",
             rate_limit_bypass=False,
         )
         result = get_env_vars(True)
