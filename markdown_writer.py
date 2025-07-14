@@ -42,7 +42,6 @@ def write_to_markdown(
             report_file.write("no op\n\n")
             return
         report_file.write(f"## Repository: {repo_data.full_name}\n\n")
-        innersource_ratio = innersource_ratio if innersource_ratio is not None else 0.0
         report_file.write(f"### InnerSource Ratio: {innersource_ratio:.2%}\n\n")
         report_file.write(
             f"### Original Commit Author: {original_commit_author} (Manager: {original_commit_author_manager})\n\n"
@@ -58,6 +57,8 @@ def write_to_markdown(
         if all_contributors:
             for contributor in all_contributors:
                 report_file.write(f"- {contributor}\n")
+        else:
+            report_file.write("No contributors found.\n")
 
         report_file.write("\n## Innersource Contributors:\n")
         if innersource_contributors:
@@ -70,9 +71,17 @@ def write_to_markdown(
         if innersource_contribution_counts:
             for contributor, count in innersource_contribution_counts.items():
                 report_file.write(f"- {contributor}: {count} contributions\n")
+        else:
+            report_file.write("No InnerSource contribution counts available.\n")
 
         report_file.write("\n## Team Member Contribution Counts:\n")
-        if team_member_contribution_counts is not None:
+        if team_member_contribution_counts:
+            found_contributions = False
             for member, count in team_member_contribution_counts.items():
                 if count > 0:
+                    found_contributions = True
                     report_file.write(f"- {member}: {count} contributions\n")
+            if not found_contributions:
+                report_file.write("No team member contributions found.\n")
+        else:
+            report_file.write("No team member contribution counts available.\n")
