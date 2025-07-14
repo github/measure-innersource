@@ -21,7 +21,7 @@ The measure-innersource tool:
 
 This tool requires an `org-data.json` file in the root of the repository that contains organizational hierarchy information. This file maps GitHub usernames to their managers, allowing the tool to determine team boundaries.
 
-Example format of `org-data.json`:
+#### Basic org-data.json Schema
 
 ```json
 {
@@ -37,7 +37,230 @@ Example format of `org-data.json`:
 }
 ```
 
-## Sample Report
+#### Schema Definition
+
+The `org-data.json` file must follow this structure:
+
+```typescript
+interface OrgData {
+  [username: string]: {
+    manager: string;
+  }
+}
+```
+
+**Field Descriptions:**
+- `username` (string): The GitHub username of the employee (case-sensitive)
+- `manager` (string): The GitHub username of the employee's direct manager
+
+#### Comprehensive org-data.json Examples
+
+##### Small Team Structure
+
+```json
+{
+  "alice": {
+    "manager": "teamlead1"
+  },
+  "bob": {
+    "manager": "teamlead1"
+  },
+  "charlie": {
+    "manager": "teamlead1"
+  },
+  "teamlead1": {
+    "manager": "director1"
+  },
+  "director1": {
+    "manager": "vp-engineering"
+  }
+}
+```
+
+##### Multi-Team Department Structure
+
+```json
+{
+  "frontend-dev1": {
+    "manager": "frontend-lead"
+  },
+  "frontend-dev2": {
+    "manager": "frontend-lead"
+  },
+  "backend-dev1": {
+    "manager": "backend-lead"
+  },
+  "backend-dev2": {
+    "manager": "backend-lead"
+  },
+  "backend-dev3": {
+    "manager": "backend-lead"
+  },
+  "frontend-lead": {
+    "manager": "engineering-manager"
+  },
+  "backend-lead": {
+    "manager": "engineering-manager"
+  },
+  "engineering-manager": {
+    "manager": "director-engineering"
+  },
+  "devops-engineer": {
+    "manager": "infrastructure-lead"
+  },
+  "infrastructure-lead": {
+    "manager": "director-engineering"
+  },
+  "director-engineering": {
+    "manager": "vp-engineering"
+  }
+}
+```
+
+##### Matrix Organization Structure
+
+```json
+{
+  "product-owner": {
+    "manager": "product-director"
+  },
+  "ux-designer": {
+    "manager": "design-lead"
+  },
+  "mobile-dev1": {
+    "manager": "mobile-lead"
+  },
+  "mobile-dev2": {
+    "manager": "mobile-lead"
+  },
+  "qa-engineer": {
+    "manager": "qa-lead"
+  },
+  "mobile-lead": {
+    "manager": "engineering-manager"
+  },
+  "qa-lead": {
+    "manager": "engineering-manager"
+  },
+  "design-lead": {
+    "manager": "design-director"
+  },
+  "engineering-manager": {
+    "manager": "director-engineering"
+  },
+  "product-director": {
+    "manager": "vp-product"
+  },
+  "design-director": {
+    "manager": "vp-product"
+  },
+  "director-engineering": {
+    "manager": "vp-engineering"
+  }
+}
+```
+
+#### Important Requirements
+
+1. **All Contributors Must Be Included**: Every GitHub username that appears in the repository's contributor list must have an entry in org-data.json
+2. **Manager Chain**: Managers should also be included in the org-data.json file with their own manager relationships
+3. **Case Sensitivity**: GitHub usernames are case-sensitive and must match exactly
+4. **JSON Validity**: The file must be valid JSON format
+5. **UTF-8 Encoding**: The file should be saved with UTF-8 encoding
+
+#### Validation Rules
+
+- Each username key must be a valid GitHub username
+- Each manager value must correspond to a GitHub username
+- Circular management relationships are not recommended but won't break the tool
+- Missing manager entries will be treated as top-level managers
+- Bot accounts (containing "[bot]" in the username) are automatically excluded
+
+#### Team Boundary Determination Algorithm
+
+The tool determines team boundaries using this algorithm:
+
+1. **Find Original Author**: Identify the author of the repository's first commit
+2. **Identify Manager**: Look up the original author's manager in org-data.json
+3. **Build Team List**: Include all users who:
+   - Report directly to the same manager as the original author
+   - Report to anyone already in the team (recursive relationship)
+   - Are managers of anyone in the team
+4. **Classify Contributors**: Any contributor not in the team list is considered an InnerSource contributor
+
+#### Example Team Boundary Calculation
+
+Given this org-data.json:
+```json
+{
+  "alice": { "manager": "teamlead" },
+  "bob": { "manager": "teamlead" },
+  "charlie": { "manager": "alice" },
+  "teamlead": { "manager": "director" },
+  "dave": { "manager": "otherlead" },
+  "otherlead": { "manager": "director" }
+}
+```
+
+If Alice created the repository:
+- **Team Members**: alice, bob, charlie, teamlead (alice's manager), director (teamlead's manager)
+- **InnerSource Contributors**: dave, otherlead (from different team branch)
+
+#### Troubleshooting org-data.json
+
+**Common Issues:**
+1. **Username Mismatch**: Ensure GitHub usernames match exactly (case-sensitive)
+2. **Missing Contributors**: All repository contributors must be in org-data.json
+3. **Invalid JSON**: Validate JSON syntax using online validators
+4. **Manager Loops**: Avoid circular manager relationships
+5. **File Location**: Ensure org-data.json is in the repository root directory
+
+## Architecture and Design
+
+The InnerSource measurement tool follows a modular architecture designed for scalability, maintainability, and efficient processing of large repositories. For detailed architectural information, see [ARCHITECTURE.md](ARCHITECTURE.md).
+
+### High-Level Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    measure-innersource                           │
+│                                                                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────┐ │
+│  │   config    │  │    auth     │  │ markdown_   │  │markdown_│ │
+│  │             │  │             │  │  writer     │  │helpers  │ │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────┘ │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │           measure_innersource (Main Module)                 │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      GitHub API                                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────┐ │
+│  │ Repository  │  │   Commits   │  │Pull Requests│  │ Issues  │ │
+│  │  Metadata   │  │             │  │             │  │         │ │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Key Design Principles
+
+1. **Modular Architecture**: Separate concerns into distinct modules for better maintainability
+2. **Chunked Processing**: Process large datasets in configurable chunks to prevent memory issues
+3. **Multiple Authentication**: Support both PAT and GitHub App authentication for flexibility
+4. **Graceful Error Handling**: Provide informative error messages and degrade gracefully
+5. **Memory Efficiency**: Use lazy evaluation and streaming to handle large repositories
+
+### Data Processing Pipeline
+
+1. **Initialization**: Load configuration and authenticate to GitHub
+2. **Repository Analysis**: Fetch metadata and organizational data
+3. **Team Boundary Detection**: Determine repository ownership using org-data.json
+4. **Contribution Analysis**: Process commits, PRs, and issues in chunks
+5. **Metric Calculation**: Calculate InnerSource ratios and statistics
+6. **Report Generation**: Create comprehensive markdown reports
 
 Below is an example of the generated InnerSource report:
 
@@ -127,6 +350,135 @@ jobs:
           OUTPUT_FILE: "innersource_report.md"
 ```
 
+### Advanced Workflow Examples
+
+#### Using GitHub App Authentication
+
+For enhanced security and higher rate limits, you can use GitHub App authentication:
+
+```yaml
+name: Measure InnerSource with GitHub App
+
+on:
+  schedule:
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+
+jobs:
+  measure-innersource:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Measure InnerSource
+        uses: github/measure-innersource@v1
+        env:
+          REPOSITORY: "owner/repo"
+          GH_APP_ID: ${{ secrets.APP_ID }}
+          GH_APP_INSTALLATION_ID: ${{ secrets.APP_INSTALLATION_ID }}
+          GH_APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+          REPORT_TITLE: "Monthly InnerSource Analysis"
+          OUTPUT_FILE: "monthly_innersource_report.md"
+          CHUNK_SIZE: "200"
+```
+
+#### GitHub Enterprise Server Configuration
+
+For GitHub Enterprise Server installations:
+
+```yaml
+name: Measure InnerSource on GitHub Enterprise
+
+on:
+  schedule:
+    - cron: "0 8 * * 1" # Run Monday mornings
+  workflow_dispatch:
+
+jobs:
+  measure-innersource:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Measure InnerSource
+        uses: github/measure-innersource@v1
+        env:
+          REPOSITORY: "internal-org/critical-service"
+          GH_TOKEN: ${{ secrets.GHE_TOKEN }}
+          GH_ENTERPRISE_URL: "https://github.company.com"
+          REPORT_TITLE: "Internal Service InnerSource Report"
+          OUTPUT_FILE: "internal_service_report.md"
+          CHUNK_SIZE: "150"
+```
+
+#### High-Volume Repository Configuration
+
+For large repositories with many contributors:
+
+```yaml
+name: Measure InnerSource for Large Repository
+
+on:
+  schedule:
+    - cron: "0 2 * * 6" # Run Saturday nights to avoid peak hours
+  workflow_dispatch:
+
+jobs:
+  measure-innersource:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Measure InnerSource
+        uses: github/measure-innersource@v1
+        env:
+          REPOSITORY: "bigcorp/massive-monorepo"
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          REPORT_TITLE: "Large Repository InnerSource Analysis"
+          OUTPUT_FILE: "large_repo_analysis.md"
+          CHUNK_SIZE: "500"  # Process more items at once for efficiency
+          RATE_LIMIT_BYPASS: "false"  # Respect rate limits for large repos
+```
+
+#### Multiple Repository Analysis
+
+To analyze multiple repositories, create separate workflow files or use a matrix strategy:
+
+```yaml
+name: Multi-Repository InnerSource Analysis
+
+on:
+  schedule:
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+
+jobs:
+  measure-innersource:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repository: 
+          - "org/frontend-app"
+          - "org/backend-service"
+          - "org/mobile-app"
+          - "org/data-pipeline"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Measure InnerSource for ${{ matrix.repository }}
+        uses: github/measure-innersource@v1
+        env:
+          REPOSITORY: ${{ matrix.repository }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          REPORT_TITLE: "InnerSource Report for ${{ matrix.repository }}"
+          OUTPUT_FILE: "report_${{ matrix.repository }}.md"
+          CHUNK_SIZE: "100"
+```
+
 ### Configuration
 
 Below are the allowed configuration options:
@@ -196,12 +548,206 @@ The tool determines team ownership by:
 - **Identify key InnerSource contributors**: Recognize individuals who contribute across team boundaries
 - **Measure the impact of InnerSource initiatives**: Track the change in metrics before and after implementing InnerSource practices
 
+## Troubleshooting
+
+### Common Issues and Solutions
+
+#### Authentication Problems
+
+**Issue**: `GH_TOKEN or the set of [GH_APP_ID, GH_APP_INSTALLATION_ID, GH_APP_PRIVATE_KEY] environment variables are not set`
+
+**Solution**:
+1. Verify you have set one of the authentication methods:
+   - For PAT: Set `GH_TOKEN` environment variable
+   - For GitHub App: Set all three app-related variables
+2. Check that your token has the necessary permissions:
+   - `repo` scope for private repositories
+   - `public_repo` scope for public repositories
+3. Ensure the token hasn't expired
+
+**Issue**: `Unable to authenticate to GitHub`
+
+**Solution**:
+1. Verify your GitHub token is valid: `curl -H "Authorization: token YOUR_TOKEN" https://api.github.com/user`
+2. For GitHub Enterprise, ensure `GH_ENTERPRISE_URL` is set correctly
+3. Check network connectivity to GitHub/GHE instance
+
+#### Repository Access Issues
+
+**Issue**: `Unable to fetch repository owner/repo specified`
+
+**Solution**:
+1. Verify the repository exists and is accessible
+2. Check the `REPOSITORY` format is correct: `owner/repo`
+3. Ensure your token has access to the repository
+4. For private repositories, confirm you have the necessary permissions
+
+#### Organization Data Issues
+
+**Issue**: `No org data found. InnerSource collaboration cannot be measured`
+
+**Solution**:
+1. Create an `org-data.json` file in your repository root
+2. Verify the file is valid JSON
+3. Ensure all contributors are included in the org-data.json
+4. Check file encoding is UTF-8
+
+**Issue**: Contributors missing from org-data.json
+
+**Solution**:
+1. Add missing contributors to org-data.json:
+   ```json
+   {
+     "missing-username": {
+       "manager": "appropriate-manager"
+     }
+   }
+   ```
+2. Verify GitHub usernames are spelled correctly (case-sensitive)
+3. Include bot accounts if needed (they're auto-excluded if containing "[bot]")
+
+#### Memory and Performance Issues
+
+**Issue**: Action runs out of memory or times out
+
+**Solution**:
+1. Reduce `CHUNK_SIZE` environment variable (default: 100)
+2. For very large repositories, consider:
+   ```yaml
+   env:
+     CHUNK_SIZE: "50"  # Process fewer items at once
+   ```
+3. Run during off-peak hours to reduce API latency
+
+**Issue**: API rate limit exceeded
+
+**Solution**:
+1. Use GitHub App authentication for higher rate limits
+2. Reduce `CHUNK_SIZE` to make fewer concurrent requests
+3. Set `RATE_LIMIT_BYPASS: "false"` (default) to respect rate limits
+4. Consider running less frequently
+
+#### Report Generation Issues
+
+**Issue**: Empty or incomplete reports
+
+**Solution**:
+1. Check that contributors have activity (commits, PRs, issues)
+2. Verify org-data.json includes all active contributors
+3. Ensure the repository has commits, PRs, or issues to analyze
+4. Check for network issues during data collection
+
+**Issue**: Report files are too large
+
+**Solution**:
+The tool automatically splits large files, but you can:
+1. Reduce the scope of analysis
+2. Use the split files feature (automatic for files >65,535 characters)
+3. Process reports programmatically rather than viewing in GitHub issues
+
+### Configuration Validation
+
+#### Environment Variable Checklist
+
+**Required Variables**:
+- [ ] `REPOSITORY` (format: `owner/repo`)
+- [ ] Authentication: `GH_TOKEN` OR (`GH_APP_ID` + `GH_APP_INSTALLATION_ID` + `GH_APP_PRIVATE_KEY`)
+
+**Optional Variables**:
+- [ ] `GH_ENTERPRISE_URL` (for GitHub Enterprise)
+- [ ] `GITHUB_APP_ENTERPRISE_ONLY` (for GHE GitHub Apps)
+- [ ] `REPORT_TITLE` (default: "InnerSource Report")
+- [ ] `OUTPUT_FILE` (default: "innersource_report.md")
+- [ ] `CHUNK_SIZE` (default: 100, minimum: 10)
+- [ ] `RATE_LIMIT_BYPASS` (default: false)
+
+#### File Requirements Checklist
+
+- [ ] `org-data.json` exists in repository root
+- [ ] `org-data.json` is valid JSON
+- [ ] All repository contributors are included in org-data.json
+- [ ] GitHub usernames match exactly (case-sensitive)
+- [ ] Manager relationships are defined for all users
+
+### Debugging Steps
+
+1. **Enable Verbose Logging**: The tool prints progress messages. Monitor the logs for:
+   - Successful authentication
+   - Repository access confirmation
+   - Org data loading
+   - Progress updates during processing
+
+2. **Validate Configuration**:
+   ```bash
+   # Test GitHub authentication
+   curl -H "Authorization: token $GH_TOKEN" https://api.github.com/user
+   
+   # Validate org-data.json
+   python -m json.tool org-data.json
+   
+   # Check repository access
+   curl -H "Authorization: token $GH_TOKEN" https://api.github.com/repos/owner/repo
+   ```
+
+3. **Test with Smaller Repositories**: Start with a smaller repository to isolate issues
+
+4. **Check GitHub API Status**: Visit https://www.githubstatus.com/ for API availability
+
+### Performance Optimization
+
+#### For Large Repositories
+
+1. **Optimize Chunk Size**:
+   ```yaml
+   env:
+     CHUNK_SIZE: "200"  # Increase for better performance
+   ```
+
+2. **Use GitHub App Authentication**:
+   - Higher rate limits (5,000 requests/hour vs 1,000)
+   - More reliable for large-scale operations
+
+3. **Schedule During Off-Peak Hours**:
+   ```yaml
+   on:
+     schedule:
+       - cron: "0 2 * * 0"  # 2 AM on Sundays
+   ```
+
+#### For High-Frequency Analysis
+
+1. **Use Incremental Processing**: Consider analyzing only recent changes
+2. **Cache Results**: Store intermediate results to avoid reprocessing
+3. **Distribute Load**: Run analysis on multiple repositories in parallel
+
+### Getting Help
+
+If you continue to experience issues:
+
+1. **Check Existing Issues**: Search the [GitHub Issues](https://github.com/github/measure-innersource/issues) for similar problems
+2. **Create a New Issue**: Include:
+   - Error messages (sanitized of sensitive information)
+   - Configuration details (without secrets)
+   - Steps to reproduce
+   - Expected vs. actual behavior
+3. **Provide Context**: Include repository size, org structure complexity, and environment details
+
+## Sample Report
+
+- Requires accurate organization data in the org-data.json file
+- Cannot detect team relationships beyond what's specified in the org-data.json file
+- Historical team changes are not accounted for (uses current team structure only)
+- Bot accounts should have "[bot]" in their username to be excluded from calculations
+
 ## Limitations
 
 - Requires accurate organization data in the org-data.json file
 - Cannot detect team relationships beyond what's specified in the org-data.json file
 - Historical team changes are not accounted for (uses current team structure only)
 - Bot accounts should have "[bot]" in their username to be excluded from calculations
+- Analysis is based on current repository state, not historical team memberships
+- Large repositories may require longer processing times and higher memory usage
+- API rate limits may affect processing speed for very large repositories
 
 ## Contributions
 
