@@ -18,7 +18,23 @@ from markdown_writer import write_to_markdown
 
 def evaluate_markdown_file_size(output_file: str) -> None:
     """
-    Evaluate the size of the markdown file and split it, if it is too large.
+    Evaluate the size of the markdown file and split it if it exceeds GitHub's issue body limits.
+    
+    This function checks if the generated markdown report is too large for GitHub issues
+    (which have a 65,535 character limit) and splits it into multiple files if necessary.
+    
+    Args:
+        output_file (str): The name of the output markdown file to evaluate.
+                          If empty or None, defaults to "innersource_report.md".
+    
+    Returns:
+        None: This function performs file operations and prints status messages.
+    
+    Side Effects:
+        - Creates additional markdown files if splitting is needed
+        - Renames the original file to {filename}_full.md
+        - Moves the first split file to the original filename
+        - Prints informational messages about the splitting process
     """
     output_file_name = output_file if output_file else "innersource_report.md"
     file_name_without_extension = Path(output_file_name).stem
@@ -36,7 +52,34 @@ The full file is saved as {file_name_without_extension}_full.md\n"
 
 def main():  # pragma: no cover
     """
-    Main function to run the innersource-measure tool.
+    Main function to run the InnerSource measurement tool.
+    
+    This function orchestrates the entire InnerSource measurement process:
+    1. Loads environment variables and configuration
+    2. Authenticates to GitHub (using either PAT or GitHub App)
+    3. Fetches repository data and organizational information
+    4. Analyzes contributors and their relationships to determine team boundaries
+    5. Processes commits, pull requests, and issues to count contributions
+    6. Calculates InnerSource collaboration ratios
+    7. Generates a comprehensive markdown report
+    
+    The function uses chunked processing to handle large repositories efficiently
+    and memory-safely.
+    
+    Returns:
+        None: This function performs the main application logic and generates
+              output files and console messages.
+    
+    Raises:
+        Various exceptions may be raised during GitHub API calls, file operations,
+        or data processing. These are generally handled gracefully with informative
+        error messages.
+    
+    Side Effects:
+        - Writes a markdown report to the specified output file
+        - Prints progress messages to the console
+        - May create additional split files for large reports
+        - Requires org-data.json file to be present in the current directory
     """
 
     print("Starting innersource-measure tool...")
