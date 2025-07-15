@@ -45,11 +45,12 @@ The `org-data.json` file must follow this structure:
 interface OrgData {
   [username: string]: {
     manager: string;
-  }
+  };
 }
 ```
 
 **Field Descriptions:**
+
 - `username` (string): The GitHub username of the employee (case-sensitive)
 - `manager` (string): The GitHub username of the employee's direct manager
 
@@ -191,6 +192,7 @@ The tool determines team boundaries using this algorithm:
 #### Example Team Boundary Calculation
 
 Given this org-data.json:
+
 ```json
 {
   "alice": { "manager": "teamlead" },
@@ -203,12 +205,14 @@ Given this org-data.json:
 ```
 
 If Alice created the repository:
+
 - **Team Members**: alice, bob, charlie, teamlead (alice's manager), director (teamlead's manager)
 - **InnerSource Contributors**: dave, otherlead (from different team branch)
 
 #### Troubleshooting org-data.json
 
 **Common Issues:**
+
 1. **Username Mismatch**: Ensure GitHub usernames match exactly (case-sensitive)
 2. **Missing Contributors**: All repository contributors must be in org-data.json
 3. **Invalid JSON**: Validate JSON syntax using online validators
@@ -260,7 +264,7 @@ The InnerSource measurement tool follows a modular architecture designed for sca
 3. **Team Boundary Detection**: Determine repository ownership using org-data.json
 4. **Contribution Analysis**: Process commits, PRs, and issues in chunks
 5. **Metric Calculation**: Calculate InnerSource ratios and statistics
-6. **Report Generation**: Create comprehensive markdown reports
+6. **Report Generation**: Create comprehensive Markdown reports
 
 Below is an example of the generated InnerSource report:
 
@@ -439,8 +443,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           REPORT_TITLE: "Large Repository InnerSource Analysis"
           OUTPUT_FILE: "large_repo_analysis.md"
-          CHUNK_SIZE: "500"  # Process more items at once for efficiency
-          RATE_LIMIT_BYPASS: "false"  # Respect rate limits for large repos
+          CHUNK_SIZE: "500" # Process more items at once for efficiency
+          RATE_LIMIT_BYPASS: "false" # Respect rate limits for large repos
 ```
 
 #### Multiple Repository Analysis
@@ -460,7 +464,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        repository: 
+        repository:
           - "org/frontend-app"
           - "org/backend-service"
           - "org/mobile-app"
@@ -557,6 +561,7 @@ The tool determines team ownership by:
 **Issue**: `GH_TOKEN or the set of [GH_APP_ID, GH_APP_INSTALLATION_ID, GH_APP_PRIVATE_KEY] environment variables are not set`
 
 **Solution**:
+
 1. Verify you have set one of the authentication methods:
    - For PAT: Set `GH_TOKEN` environment variable
    - For GitHub App: Set all three app-related variables
@@ -568,6 +573,7 @@ The tool determines team ownership by:
 **Issue**: `Unable to authenticate to GitHub`
 
 **Solution**:
+
 1. Verify your GitHub token is valid: `curl -H "Authorization: token YOUR_TOKEN" https://api.github.com/user`
 2. For GitHub Enterprise, ensure `GH_ENTERPRISE_URL` is set correctly
 3. Check network connectivity to GitHub/GHE instance
@@ -577,6 +583,7 @@ The tool determines team ownership by:
 **Issue**: `Unable to fetch repository owner/repo specified`
 
 **Solution**:
+
 1. Verify the repository exists and is accessible
 2. Check the `REPOSITORY` format is correct: `owner/repo`
 3. Ensure your token has access to the repository
@@ -587,6 +594,7 @@ The tool determines team ownership by:
 **Issue**: `No org data found. InnerSource collaboration cannot be measured`
 
 **Solution**:
+
 1. Create an `org-data.json` file in your repository root
 2. Verify the file is valid JSON
 3. Ensure all contributors are included in the org-data.json
@@ -595,6 +603,7 @@ The tool determines team ownership by:
 **Issue**: Contributors missing from org-data.json
 
 **Solution**:
+
 1. Add missing contributors to org-data.json:
    ```json
    {
@@ -611,17 +620,19 @@ The tool determines team ownership by:
 **Issue**: Action runs out of memory or times out
 
 **Solution**:
+
 1. Reduce `CHUNK_SIZE` environment variable (default: 100)
 2. For very large repositories, consider:
    ```yaml
    env:
-     CHUNK_SIZE: "50"  # Process fewer items at once
+     CHUNK_SIZE: "50" # Process fewer items at once
    ```
 3. Run during off-peak hours to reduce API latency
 
 **Issue**: API rate limit exceeded
 
 **Solution**:
+
 1. Use GitHub App authentication for higher rate limits
 2. Reduce `CHUNK_SIZE` to make fewer concurrent requests
 3. Set `RATE_LIMIT_BYPASS: "false"` (default) to respect rate limits
@@ -632,6 +643,7 @@ The tool determines team ownership by:
 **Issue**: Empty or incomplete reports
 
 **Solution**:
+
 1. Check that contributors have activity (commits, PRs, issues)
 2. Verify org-data.json includes all active contributors
 3. Ensure the repository has commits, PRs, or issues to analyze
@@ -641,6 +653,7 @@ The tool determines team ownership by:
 
 **Solution**:
 The tool automatically splits large files, but you can:
+
 1. Reduce the scope of analysis
 2. Use the split files feature (automatic for files >65,535 characters)
 3. Process reports programmatically rather than viewing in GitHub issues
@@ -650,10 +663,12 @@ The tool automatically splits large files, but you can:
 #### Environment Variable Checklist
 
 **Required Variables**:
+
 - [ ] `REPOSITORY` (format: `owner/repo`)
 - [ ] Authentication: `GH_TOKEN` OR (`GH_APP_ID` + `GH_APP_INSTALLATION_ID` + `GH_APP_PRIVATE_KEY`)
 
 **Optional Variables**:
+
 - [ ] `GH_ENTERPRISE_URL` (for GitHub Enterprise)
 - [ ] `GITHUB_APP_ENTERPRISE_ONLY` (for GHE GitHub Apps)
 - [ ] `REPORT_TITLE` (default: "InnerSource Report")
@@ -678,13 +693,14 @@ The tool automatically splits large files, but you can:
    - Progress updates during processing
 
 2. **Validate Configuration**:
+
    ```bash
    # Test GitHub authentication
    curl -H "Authorization: token $GH_TOKEN" https://api.github.com/user
-   
+
    # Validate org-data.json
    python -m json.tool org-data.json
-   
+
    # Check repository access
    curl -H "Authorization: token $GH_TOKEN" https://api.github.com/repos/owner/repo
    ```
@@ -698,9 +714,10 @@ The tool automatically splits large files, but you can:
 #### For Large Repositories
 
 1. **Optimize Chunk Size**:
+
    ```yaml
    env:
-     CHUNK_SIZE: "200"  # Increase for better performance
+     CHUNK_SIZE: "200" # Increase for better performance
    ```
 
 2. **Use GitHub App Authentication**:
@@ -711,7 +728,7 @@ The tool automatically splits large files, but you can:
    ```yaml
    on:
      schedule:
-       - cron: "0 2 * * 0"  # 2 AM on Sundays
+       - cron: "0 2 * * 0" # 2 AM on Sundays
    ```
 
 #### For High-Frequency Analysis

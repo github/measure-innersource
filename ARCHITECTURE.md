@@ -50,16 +50,19 @@ The InnerSource Measurement Tool is designed to analyze GitHub repositories and 
 ### 1. Configuration Management (`config.py`)
 
 **Responsibilities:**
+
 - Parse and validate environment variables
 - Provide type-safe configuration access
 - Handle default values and required parameters
 - Support multiple authentication methods
 
 **Key Classes:**
+
 - `EnvVars`: Immutable configuration object
 - Helper functions for type conversion and validation
 
 **Design Patterns:**
+
 - Configuration Object Pattern
 - Builder Pattern (for environment variable parsing)
 - Validation Chain Pattern
@@ -67,34 +70,40 @@ The InnerSource Measurement Tool is designed to analyze GitHub repositories and 
 ### 2. Authentication Manager (`auth.py`)
 
 **Responsibilities:**
+
 - Authenticate with GitHub using multiple methods
 - Handle GitHub Enterprise Server installations
 - Manage JWT tokens for GitHub App authentication
 - Provide unified authentication interface
 
 **Key Functions:**
+
 - `auth_to_github()`: Main authentication orchestrator
 - `get_github_app_installation_token()`: JWT token exchange
 
 **Design Patterns:**
+
 - Strategy Pattern (for different authentication methods)
 - Factory Pattern (for creating GitHub clients)
 
 ### 3. Core Analysis Engine (`measure_innersource.py`)
 
 **Responsibilities:**
+
 - Orchestrate the entire analysis process
 - Implement team boundary detection algorithm
 - Manage chunked processing for large repositories
 - Calculate InnerSource metrics and ratios
 
 **Key Algorithms:**
+
 - Team boundary detection
 - Contribution aggregation
 - Chunked data processing
 - Progress tracking and error handling
 
 **Design Patterns:**
+
 - Pipeline Pattern (for staged processing)
 - Iterator Pattern (for chunked processing)
 - Observer Pattern (for progress tracking)
@@ -102,23 +111,27 @@ The InnerSource Measurement Tool is designed to analyze GitHub repositories and 
 ### 4. Report Generation (`markdown_writer.py`)
 
 **Responsibilities:**
-- Generate structured markdown reports
+
+- Generate structured Markdown reports
 - Format data for human consumption
 - Handle edge cases and missing data
 - Provide consistent report structure
 
 **Design Patterns:**
+
 - Template Method Pattern
 - Null Object Pattern (for handling missing data)
 
 ### 5. Utility Functions (`markdown_helpers.py`)
 
 **Responsibilities:**
+
 - Manage file size constraints
 - Split large files intelligently
 - Preserve content integrity during splits
 
 **Design Patterns:**
+
 - Strategy Pattern (for file splitting)
 - Utility/Helper Pattern
 
@@ -236,7 +249,7 @@ The team boundary detection algorithm is central to the tool's functionality:
 def detect_team_boundaries(original_author: str, org_data: dict) -> set:
     """
     Detect team boundaries using organizational hierarchy
-    
+
     Algorithm:
     1. Start with original commit author
     2. Add their direct manager
@@ -245,31 +258,31 @@ def detect_team_boundaries(original_author: str, org_data: dict) -> set:
     5. Continue until no new members are found
     """
     team_members = {original_author}
-    
+
     # Add original author's manager
     if original_author in org_data:
         manager = org_data[original_author]["manager"]
         team_members.add(manager)
-        
+
         # Add all peers (same manager)
         for user, data in org_data.items():
             if data["manager"] == manager:
                 team_members.add(user)
-    
+
     # Recursive expansion
     changed = True
     while changed:
         changed = False
         initial_size = len(team_members)
-        
+
         # Add anyone who reports to current team members
         for user, data in org_data.items():
             if data["manager"] in team_members:
                 team_members.add(user)
-        
+
         # Check if we added anyone new
         changed = len(team_members) > initial_size
-    
+
     return team_members
 ```
 
@@ -281,7 +294,7 @@ For memory efficiency with large repositories:
 def process_in_chunks(iterator, chunk_size: int, processor_func):
     """
     Process large datasets in memory-efficient chunks
-    
+
     Benefits:
     - Prevents memory overflow
     - Provides progress feedback
@@ -290,7 +303,7 @@ def process_in_chunks(iterator, chunk_size: int, processor_func):
     """
     results = {}
     total_processed = 0
-    
+
     while True:
         # Collect chunk
         chunk = []
@@ -299,20 +312,20 @@ def process_in_chunks(iterator, chunk_size: int, processor_func):
                 chunk.append(next(iterator))
             except StopIteration:
                 break
-        
+
         if not chunk:
             break
-        
+
         # Process chunk
         chunk_results = processor_func(chunk)
-        
+
         # Merge results
         for key, value in chunk_results.items():
             results[key] = results.get(key, 0) + value
-        
+
         total_processed += len(chunk)
         print(f"Processed {total_processed} items...")
-    
+
     return results
 ```
 
@@ -322,16 +335,16 @@ def process_in_chunks(iterator, chunk_size: int, processor_func):
 def aggregate_contributions(commit_counts, pr_counts, issue_counts):
     """
     Aggregate different types of contributions
-    
+
     Combines:
     - Commit authorship
     - Pull request creation
     - Issue creation
-    
+
     Returns unified contribution counts per user
     """
     all_users = set(commit_counts.keys()) | set(pr_counts.keys()) | set(issue_counts.keys())
-    
+
     aggregated = {}
     for user in all_users:
         aggregated[user] = (
@@ -339,7 +352,7 @@ def aggregate_contributions(commit_counts, pr_counts, issue_counts):
             pr_counts.get(user, 0) +
             issue_counts.get(user, 0)
         )
-    
+
     return aggregated
 ```
 
@@ -478,6 +491,7 @@ CMD ["python", "measure_innersource.py"]
 ### GitHub Actions Integration
 
 The tool is designed to run seamlessly in GitHub Actions with:
+
 - Minimal resource requirements
 - Efficient processing patterns
 - Clear progress reporting
