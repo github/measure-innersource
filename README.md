@@ -608,7 +608,7 @@ The tool determines team ownership by:
 
 **Solution**:
 
-1. Verify your GitHub token is valid: `curl -H "Authorization: token YOUR_TOKEN" https://api.github.com/user`
+1. Verify your GitHub token is valid: `curl -H "Authorization: token YOUR_TOKEN" https://api.github.com/user` #gitleaks:allow
 2. For GitHub Enterprise, ensure `GH_ENTERPRISE_URL` is set correctly
 3. Check network connectivity to GitHub/GHE instance
 

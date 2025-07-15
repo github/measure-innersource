@@ -180,4 +180,3 @@ The InnerSource Measurement Tool is designed to analyze GitHub repositories and 
 3. **Network Errors**: API timeouts or connectivity issues
 4. **Data Errors**: Missing org-data.json or invalid format
 5. **Processing Errors**: Unexpected data structures or edge cases
-
