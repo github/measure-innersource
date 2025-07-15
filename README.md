@@ -254,7 +254,7 @@ The InnerSource measurement tool follows a modular architecture designed for sca
 
 ### High-Level Architecture
 
-```
+```bash
 ┌─────────────────────────────────────────────────────────────────┐
 │                    measure-innersource                           │
 │                                                                 │
@@ -741,7 +741,7 @@ The tool automatically splits large files, but you can:
 
 3. **Test with Smaller Repositories**: Start with a smaller repository to isolate issues
 
-4. **Check GitHub API Status**: Visit https://www.githubstatus.com/ for API availability
+4. **Check GitHub API Status**: Visit [https://www.githubstatus.com/](https://www.githubstatus.com/) for API availability
 
 ### Performance Optimization
 

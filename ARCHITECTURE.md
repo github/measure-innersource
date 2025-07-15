@@ -8,7 +8,7 @@ The InnerSource Measurement Tool is designed to analyze GitHub repositories and 
 
 ### Component Diagram
 
-```
+```bash
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                        InnerSource Measurement Tool                             │
 │                                                                                 │
@@ -95,7 +95,7 @@ The InnerSource Measurement Tool is designed to analyze GitHub repositories and 
 
 ### Processing Pipeline
 
-```
+```bash
 ┌─────────────────┐
 │  Start Process  │
 └─────────────────┘
