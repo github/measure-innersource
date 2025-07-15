@@ -86,20 +86,20 @@ class EnvVars:
 
 def get_bool_env_var(env_var_name: str, default: bool = False) -> bool:
     """Get a boolean environment variable with proper type conversion.
-    
+
     This function retrieves an environment variable and converts it to a boolean.
     Only the string "true" (case-insensitive) is considered True; all other
     values are considered False.
 
     Args:
         env_var_name (str): The name of the environment variable to retrieve.
-        default (bool, optional): The default value to return if the environment 
+        default (bool, optional): The default value to return if the environment
                                  variable is not set or is empty. Defaults to False.
 
     Returns:
         bool: True if the environment variable is set to "true" (case-insensitive),
               False otherwise, or the default value if the variable is not set.
-    
+
     Examples:
         >>> os.environ['TEST_VAR'] = 'true'
         >>> get_bool_env_var('TEST_VAR')
@@ -115,7 +115,7 @@ def get_bool_env_var(env_var_name: str, default: bool = False) -> bool:
 
 def get_int_env_var(env_var_name: str) -> int | None:
     """Get an integer environment variable with proper type conversion and validation.
-    
+
     This function retrieves an environment variable and attempts to convert it to an integer.
     If the conversion fails or the variable is not set, it returns None.
 
@@ -125,7 +125,7 @@ def get_int_env_var(env_var_name: str) -> int | None:
     Returns:
         int | None: The value of the environment variable as an integer, or None if
                    the variable is not set, empty, or cannot be converted to an integer.
-    
+
     Examples:
         >>> os.environ['PORT'] = '8080'
         >>> get_int_env_var('PORT')
@@ -148,33 +148,33 @@ def get_int_env_var(env_var_name: str) -> int | None:
 def get_env_vars(test: bool = False) -> EnvVars:
     """
     Get and validate all environment variables required for the InnerSource measurement tool.
-    
+
     This function loads environment variables from the system and an optional .env file,
     validates them, and returns a structured EnvVars object containing all configuration
     needed to run the tool.
-    
+
     Args:
         test (bool, optional): If True, skip loading the .env file (used for testing).
                               Defaults to False.
-    
+
     Returns:
         EnvVars: A structured object containing all validated environment variables
                 and configuration settings.
-    
+
     Raises:
         ValueError: If required environment variables are missing or invalid:
                    - Missing GitHub authentication (GH_TOKEN or GitHub App credentials)
                    - Missing or invalid REPOSITORY format (must be "owner/repo")
                    - Incomplete GitHub App credentials (missing ID, key, or installation ID)
-    
+
     Environment Variables Required:
         Authentication (choose one):
         - GH_TOKEN: GitHub personal access token
         - GH_APP_ID + GH_APP_PRIVATE_KEY + GH_APP_INSTALLATION_ID: GitHub App credentials
-        
+
         Repository:
         - REPOSITORY: Repository to analyze in "owner/repo" format
-        
+
         Optional:
         - GH_ENTERPRISE_URL: GitHub Enterprise URL (for on-premises installations)
         - GITHUB_APP_ENTERPRISE_ONLY: Set to "true" for GHE-only GitHub Apps
@@ -182,7 +182,7 @@ def get_env_vars(test: bool = False) -> EnvVars:
         - OUTPUT_FILE: Output filename (default: "innersource_report.md")
         - RATE_LIMIT_BYPASS: Set to "true" to bypass rate limiting
         - CHUNK_SIZE: Number of items to process at once (default: 100, minimum: 10)
-    
+
     Examples:
         >>> os.environ['GH_TOKEN'] = 'ghp_...'
         >>> os.environ['REPOSITORY'] = 'octocat/Hello-World'

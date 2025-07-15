@@ -21,10 +21,10 @@ Common Use Cases:
 def markdown_too_large_for_issue_body(file_path: str, max_char_count: int) -> bool:
     """
     Check if a markdown file exceeds GitHub's issue body character limit.
-    
+
     GitHub issues have a maximum character limit for the body content. This function
     reads a markdown file and determines if it would exceed this limit.
-    
+
     Args:
         file_path (str): The path to the markdown file to check. Must be a valid
                         file path that exists and is readable.
@@ -33,12 +33,12 @@ def markdown_too_large_for_issue_body(file_path: str, max_char_count: int) -> bo
 
     Returns:
         bool: True if the file contents exceed the character limit, False otherwise.
-    
+
     Raises:
         FileNotFoundError: If the specified file does not exist.
         PermissionError: If the file cannot be read due to permission issues.
         UnicodeDecodeError: If the file contains invalid UTF-8 encoding.
-    
+
     Examples:
         >>> # Check if a report is too large for GitHub issues
         >>> is_too_large = markdown_too_large_for_issue_body("report.md", 65535)
@@ -53,11 +53,11 @@ def markdown_too_large_for_issue_body(file_path: str, max_char_count: int) -> bo
 def split_markdown_file(file_path: str, max_char_count: int) -> None:
     """
     Split a large markdown file into smaller files that fit within size limits.
-    
+
     This function reads a markdown file and splits it into multiple smaller files
     when the original file is too large for GitHub issues or other systems with
     character limits.
-    
+
     Args:
         file_path (str): The path to the markdown file to split. The file must exist
                         and be readable. The function will create new files with
@@ -67,22 +67,22 @@ def split_markdown_file(file_path: str, max_char_count: int) -> None:
 
     Returns:
         None: This function performs file operations and creates new split files.
-    
+
     Side Effects:
         - Creates new files with names like "{original_name}_0.md", "{original_name}_1.md", etc.
         - Each new file contains a portion of the original content
         - Files are created in the same directory as the original file
         - The original file is not modified or deleted
-    
+
     File Naming:
         - Original file: "report.md"
         - Split files: "report_0.md", "report_1.md", "report_2.md", etc.
-    
+
     Raises:
         FileNotFoundError: If the specified file does not exist.
         PermissionError: If the file cannot be read or new files cannot be created.
         UnicodeDecodeError: If the file contains invalid UTF-8 encoding.
-    
+
     Examples:
         >>> # Split a large report into smaller files
         >>> split_markdown_file("large_report.md", 65535)

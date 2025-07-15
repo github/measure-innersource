@@ -34,15 +34,15 @@ def auth_to_github(
 ) -> github3.GitHub:
     """
     Establish an authenticated connection to GitHub.com or GitHub Enterprise.
-    
+
     This function creates an authenticated GitHub client using either Personal Access Token
     or GitHub App authentication. It supports both GitHub.com and GitHub Enterprise
     installations.
-    
+
     Authentication Priority:
     1. GitHub App authentication (if all app credentials are provided)
     2. Personal Access Token authentication (if token is provided)
-    
+
     Args:
         token (str): The GitHub personal access token for authentication.
                     Can be empty if using GitHub App authentication.
@@ -61,21 +61,21 @@ def auth_to_github(
     Returns:
         github3.GitHub: An authenticated GitHub client object that can be used
                        to make API calls to GitHub.
-    
+
     Raises:
         ValueError: If authentication fails due to:
                    - Missing required credentials (no token or incomplete app credentials)
                    - Unable to establish connection to GitHub
-    
+
     Examples:
         >>> # Using Personal Access Token
-        >>> client = auth_to_github(token="ghp_...", gh_app_id=None, 
-        ...                        gh_app_installation_id=None, 
-        ...                        gh_app_private_key_bytes=b"", 
+        >>> client = auth_to_github(token="ghp_...", gh_app_id=None,
+        ...                        gh_app_installation_id=None,
+        ...                        gh_app_private_key_bytes=b"",
         ...                        ghe="", gh_app_enterprise_only=False)
-        
+
         >>> # Using GitHub App
-        >>> client = auth_to_github(token="", gh_app_id=12345, 
+        >>> client = auth_to_github(token="", gh_app_id=12345,
         ...                        gh_app_installation_id=67890,
         ...                        gh_app_private_key_bytes=private_key_bytes,
         ...                        ghe="", gh_app_enterprise_only=False)
@@ -112,13 +112,13 @@ def get_github_app_installation_token(
 ) -> str | None:
     """
     Obtain a GitHub App Installation access token using JWT authentication.
-    
+
     This function creates a JWT token using the GitHub App's private key and exchanges
     it for an installation access token that can be used to authenticate API requests
     on behalf of the installed app.
-    
+
     Reference: https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation
-    
+
     Args:
         ghe (str): The GitHub Enterprise endpoint URL (e.g., "https://github.company.com").
                   Leave empty for GitHub.com.
@@ -132,20 +132,20 @@ def get_github_app_installation_token(
     Returns:
         str | None: The installation access token if successful, None if the request
                    fails or if there's an error in the authentication process.
-    
+
     Raises:
         No exceptions are raised directly, but request failures are handled gracefully
         and logged to the console.
-    
+
     Notes:
         - The token has a default expiration time (typically 1 hour)
         - The token provides access to resources the app installation has been granted
         - Network errors and API failures are handled gracefully with None return
-    
+
     Examples:
         >>> private_key = b"-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----"
         >>> token = get_github_app_installation_token(
-        ...     ghe="", 
+        ...     ghe="",
         ...     gh_app_id="12345",
         ...     gh_app_private_key_bytes=private_key,
         ...     gh_app_installation_id="67890"

@@ -43,11 +43,11 @@ def write_to_markdown(
 ) -> None:
     """
     Generate a comprehensive InnerSource collaboration report in markdown format.
-    
+
     This function creates a detailed markdown report that analyzes InnerSource collaboration
     within a repository. The report includes team ownership information, contributor
     analysis, and contribution statistics.
-    
+
     Args:
         report_title (str, optional): The title to display at the top of the report.
                                      Defaults to empty string.
@@ -87,12 +87,12 @@ def write_to_markdown(
 
     Returns:
         None: This function creates a markdown file as a side effect.
-    
+
     Side Effects:
         - Creates a markdown file with the specified filename
         - Overwrites the file if it already exists
         - Writes UTF-8 encoded content
-    
+
     Report Structure:
         The generated report includes the following sections:
         1. Report title
@@ -104,7 +104,7 @@ def write_to_markdown(
         7. InnerSource contributors list
         8. InnerSource contribution counts
         9. Team member contribution counts
-    
+
     Examples:
         >>> # Generate a basic report
         >>> write_to_markdown(
@@ -113,7 +113,7 @@ def write_to_markdown(
         ...     innersource_ratio=0.35,
         ...     repo_data=repo_object
         ... )
-        
+
         >>> # Generate a complete report with all data
         >>> write_to_markdown(
         ...     report_title="Complete Analysis",
