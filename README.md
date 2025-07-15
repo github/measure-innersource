@@ -23,6 +23,9 @@ This tool requires an `org-data.json` file in the root of the repository that co
 
 #### Basic org-data.json Schema
 
+<details>
+<summary>View basic org-data.json example</summary>
+
 ```json
 {
   "username1": {
@@ -37,9 +40,14 @@ This tool requires an `org-data.json` file in the root of the repository that co
 }
 ```
 
+</details>
+
 #### Schema Definition
 
 The `org-data.json` file must follow this structure:
+
+<details>
+<summary>View schema definition</summary>
 
 ```typescript
 interface OrgData {
@@ -49,6 +57,8 @@ interface OrgData {
 }
 ```
 
+</details>
+
 **Field Descriptions:**
 
 - `username` (string): The GitHub username of the employee (case-sensitive)
@@ -57,6 +67,9 @@ interface OrgData {
 #### Comprehensive org-data.json Examples
 
 ##### Small Team Structure
+
+<details>
+<summary>View Small Team Structure Example</summary>
 
 ```json
 {
@@ -78,7 +91,12 @@ interface OrgData {
 }
 ```
 
+</details>
+
 ##### Multi-Team Department Structure
+
+<details>
+<summary>View Multi-Team Department Structure Example</summary>
 
 ```json
 {
@@ -118,7 +136,12 @@ interface OrgData {
 }
 ```
 
+</details>
+
 ##### Matrix Organization Structure
+
+<details>
+<summary>View Matrix Organization Structure Example</summary>
 
 ```json
 {
@@ -161,6 +184,8 @@ interface OrgData {
 }
 ```
 
+</details>
+
 #### Important Requirements
 
 1. **All Contributors Must Be Included**: Every GitHub username that appears in the repository's contributor list must have an entry in org-data.json
@@ -191,6 +216,9 @@ The tool determines team boundaries using this algorithm:
 
 #### Example Team Boundary Calculation
 
+<details>
+<summary>View team boundary calculation example</summary>
+
 Given this org-data.json:
 
 ```json
@@ -208,6 +236,7 @@ If Alice created the repository:
 
 - **Team Members**: alice, bob, charlie, teamlead (alice's manager), director (teamlead's manager)
 - **InnerSource Contributors**: dave, otherlead (from different team branch)
+</details>
 
 #### Troubleshooting org-data.json
 
@@ -268,6 +297,9 @@ The InnerSource measurement tool follows a modular architecture designed for sca
 
 Below is an example of the generated InnerSource report:
 
+<details>
+<summary>View example InnerSource report</summary>
+
 ```markdown
 # InnerSource Report
 
@@ -308,6 +340,8 @@ Below is an example of the generated InnerSource report:
 - octodev1: 12 contributions
 - octodev2: 5 contributions
 ```
+
+</details>
 
 ## Support
 
@@ -780,10 +814,10 @@ We would ❤️ contributions to improve this action. Please see [CONTRIBUTING.m
   `source .venv/bin/activate`
 - Install dependencies
   `pip install -r requirements.txt -r requirements-test.txt`
-- Run tests
-  `make test`
 - Run linter
   `make lint`
+- Run tests
+  `make test`
 
 ## License
 
