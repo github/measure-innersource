@@ -785,10 +785,7 @@ If you continue to experience issues:
 
 ## Sample Report
 
-- Requires accurate organization data in the org-data.json file
-- Cannot detect team relationships beyond what's specified in the org-data.json file
-- Historical team changes are not accounted for (uses current team structure only)
-- Bot accounts should have "[bot]" in their username to be excluded from calculations
+- See the [Limitations](#limitations) section for details on the constraints and requirements of this tool.
 
 ## Limitations
 
