@@ -785,7 +785,46 @@ If you continue to experience issues:
 
 ## Sample Report
 
-- See the [Limitations](#limitations) section for details on the constraints and requirements of this tool.
+```markdown
+# InnerSource Report
+
+## Repository: octocat/hello-world
+
+### InnerSource Ratio: 35.67%
+
+### Original Commit Author: octocat (Manager: octoboss)
+
+## Team Members that Own the Repo:
+
+- octocat
+- octoboss
+- octodev1
+- octodev2
+
+## All Contributors:
+
+- octocat
+- octodev1
+- octodev2
+- contributor1
+- contributor2
+
+## Innersource Contributors:
+
+- contributor1
+- contributor2
+
+## Innersource Contribution Counts:
+
+- contributor1: 15 contributions
+- contributor2: 8 contributions
+
+## Team Member Contribution Counts:
+
+- octocat: 25 contributions
+- octodev1: 12 contributions
+- octodev2: 5 contributions
+```
 
 ## Limitations
 
