@@ -1,4 +1,24 @@
-"""This is the module that contains functions related to authenticating to GitHub with a personal access token."""
+"""GitHub authentication module for the InnerSource measurement tool.
+
+This module provides functions for authenticating with GitHub using either Personal Access
+Tokens (PAT) or GitHub App installations. It supports both GitHub.com and GitHub Enterprise
+Server installations.
+
+Authentication Methods:
+    1. Personal Access Token (PAT) - Simple token-based authentication
+    2. GitHub App Installation - More secure app-based authentication with JWT
+
+The module handles the complexity of different authentication methods and provides
+a unified interface for establishing authenticated connections to GitHub's API.
+
+Functions:
+    auth_to_github: Create an authenticated GitHub client connection
+    get_github_app_installation_token: Obtain installation tokens for GitHub Apps
+
+Dependencies:
+    - github3.py: GitHub API client library
+    - requests: HTTP library for API calls
+"""
 
 import github3
 import requests
@@ -13,19 +33,52 @@ def auth_to_github(
     gh_app_enterprise_only: bool,
 ) -> github3.GitHub:
     """
-    Connect to GitHub.com or GitHub Enterprise, depending on env variables.
+    Establish an authenticated connection to GitHub.com or GitHub Enterprise.
+
+    This function creates an authenticated GitHub client using either Personal Access Token
+    or GitHub App authentication. It supports both GitHub.com and GitHub Enterprise
+    installations.
+
+    Authentication Priority:
+    1. GitHub App authentication (if all app credentials are provided)
+    2. Personal Access Token authentication (if token is provided)
 
     Args:
-        token (str): the GitHub personal access token
-        gh_app_id (int | None): the GitHub App ID
-        gh_app_installation_id (int | None): the GitHub App Installation ID
-        gh_app_private_key_bytes (bytes): the GitHub App Private Key
-        ghe (str): the GitHub Enterprise URL
-        gh_app_enterprise_only (bool): Set this to true if the GH APP is created
-                                       on GHE and needs to communicate with GHE api only
+        token (str): The GitHub personal access token for authentication.
+                    Can be empty if using GitHub App authentication.
+        gh_app_id (int | None): The GitHub App ID for app-based authentication.
+                               Required along with other app credentials for app auth.
+        gh_app_installation_id (int | None): The GitHub App Installation ID.
+                                            Required for app-based authentication.
+        gh_app_private_key_bytes (bytes): The GitHub App Private Key as bytes.
+                                         Required for app-based authentication.
+        ghe (str): The GitHub Enterprise URL (e.g., "https://github.company.com").
+                  Leave empty for GitHub.com.
+        gh_app_enterprise_only (bool): Set to True if the GitHub App is created
+                                      on GitHub Enterprise and should only communicate
+                                      with the GHE API endpoint.
 
     Returns:
-        github3.GitHub: the GitHub connection object
+        github3.GitHub: An authenticated GitHub client object that can be used
+                       to make API calls to GitHub.
+
+    Raises:
+        ValueError: If authentication fails due to:
+                   - Missing required credentials (no token or incomplete app credentials)
+                   - Unable to establish connection to GitHub
+
+    Examples:
+        >>> # Using Personal Access Token
+        >>> client = auth_to_github(token="ghp_...", gh_app_id=None,
+        ...                        gh_app_installation_id=None,
+        ...                        gh_app_private_key_bytes=b"",
+        ...                        ghe="", gh_app_enterprise_only=False)
+
+        >>> # Using GitHub App
+        >>> client = auth_to_github(token="", gh_app_id=12345,
+        ...                        gh_app_installation_id=67890,
+        ...                        gh_app_private_key_bytes=private_key_bytes,
+        ...                        ghe="", gh_app_enterprise_only=False)
     """
     if gh_app_id and gh_app_private_key_bytes and gh_app_installation_id:
         if ghe and gh_app_enterprise_only:
@@ -58,17 +111,47 @@ def get_github_app_installation_token(
     gh_app_installation_id: str,
 ) -> str | None:
     """
-    Get a GitHub App Installation token.
-    API: https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation # noqa: E501
+    Obtain a GitHub App Installation access token using JWT authentication.
+
+    This function creates a JWT token using the GitHub App's private key and exchanges
+    it for an installation access token that can be used to authenticate API requests
+    on behalf of the installed app.
+
+    Reference: https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation
 
     Args:
-        ghe (str): the GitHub Enterprise endpoint
-        gh_app_id (str): the GitHub App ID
-        gh_app_private_key_bytes (bytes): the GitHub App Private Key
-        gh_app_installation_id (str): the GitHub App Installation ID
+        ghe (str): The GitHub Enterprise endpoint URL (e.g., "https://github.company.com").
+                  Leave empty for GitHub.com.
+        gh_app_id (str): The GitHub App ID as a string.
+        gh_app_private_key_bytes (bytes): The GitHub App Private Key in bytes format.
+                                         This should be the complete private key including
+                                         the header and footer.
+        gh_app_installation_id (str): The GitHub App Installation ID as a string.
+                                     This identifies the specific installation of the app.
 
     Returns:
-        str: the GitHub App token
+        str | None: The installation access token if successful, None if the request
+                   fails or if there's an error in the authentication process.
+
+    Raises:
+        No exceptions are raised directly, but request failures are handled gracefully
+        and logged to the console.
+
+    Notes:
+        - The token has a default expiration time (typically 1 hour)
+        - The token provides access to resources the app installation has been granted
+        - Network errors and API failures are handled gracefully with None return
+
+    Examples:
+        >>> private_key = b"-----BEGIN PRIVATE KEY-----\\n[key content]\\n-----END PRIVATE KEY-----"
+        >>> token = get_github_app_installation_token(
+        ...     ghe="",
+        ...     gh_app_id="12345",
+        ...     gh_app_private_key_bytes=private_key,
+        ...     gh_app_installation_id="67890"
+        ... )
+        >>> if token:
+        ...     print("Successfully obtained installation token")
     """
     jwt_headers = github3.apps.create_jwt_headers(gh_app_private_key_bytes, gh_app_id)
     api_endpoint = f"{ghe}/api/v3" if ghe else "https://api.github.com"

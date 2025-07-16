@@ -1,5 +1,30 @@
-"""
-A module for writing an InnerSource Report to a markdown file.
+"""Markdown report generation module for InnerSource collaboration analysis.
+
+This module provides functionality to generate comprehensive markdown reports that
+analyze InnerSource collaboration within GitHub repositories. The reports include
+detailed information about team ownership, contributor analysis, and contribution
+statistics.
+
+The generated reports help organizations understand:
+- How much cross-team collaboration is happening in their repositories
+- Who are the key InnerSource contributors from outside teams
+- The ratio of InnerSource contributions to total contributions
+- Team boundaries and ownership patterns
+
+Report Structure:
+    The generated markdown reports include:
+    1. Repository identification and metadata
+    2. InnerSource collaboration ratio calculations
+    3. Original commit author and team ownership information
+    4. Complete contributor lists and categorization
+    5. Detailed contribution counts and statistics
+
+Functions:
+    write_to_markdown: Generate a complete InnerSource collaboration report
+
+Dependencies:
+    - Standard library file operations for markdown generation
+    - GitHub API data structures for repository information
 """
 
 
@@ -17,22 +42,92 @@ def write_to_markdown(
     team_member_contribution_counts=None,
 ) -> None:
     """
-    Write an InnerSource Report to a markdown file.
+    Generate a comprehensive InnerSource collaboration report in markdown format.
+
+    This function creates a detailed markdown report that analyzes InnerSource collaboration
+    within a repository. The report includes team ownership information, contributor
+    analysis, and contribution statistics.
+
     Args:
-        report_title (str): The title of the report.
-        output_file (str): The name of the output markdown file.
-        innersource_ratio (float): The ratio of InnerSource contributions.
-        repo_data (object): The repository data object.
-        original_commit_author (str): The original commit author's name.
-        original_commit_author_manager (str): The manager of the original commit author.
-        team_members_that_own_the_repo (list): List of team members that own the repository.
-        all_contributors (list): List of all contributors to the repository.
-        innersource_contributors (list): List of InnerSource contributors.
-        innersource_contribution_counts (dict): Dictionary of InnerSource contribution counts.
-        team_member_contribution_counts (dict): Dictionary of team member contribution counts.
+        report_title (str, optional): The title to display at the top of the report.
+                                     Defaults to empty string.
+        output_file (str, optional): The filename for the output markdown file.
+                                    Defaults to "innersource_report.md" if empty.
+        innersource_ratio (float | None, optional): The calculated ratio of InnerSource
+                                                   contributions to total contributions.
+                                                   Should be a float between 0 and 1.
+        repo_data (github3.repos.Repository | None, optional): The GitHub repository
+                                                               object containing repository
+                                                               metadata. If None, generates
+                                                               a minimal report.
+        original_commit_author (str, optional): The username of the author of the
+                                               repository's first commit. Used to
+                                               determine repository ownership.
+        original_commit_author_manager (str, optional): The manager of the original
+                                                        commit author, used for team
+                                                        boundary determination.
+        team_members_that_own_the_repo (list[str] | None, optional): List of usernames
+                                                                     who are considered
+                                                                     owners of the repository.
+        all_contributors (list[str] | None, optional): List of all contributor usernames
+                                                       who have made contributions to
+                                                       the repository.
+        innersource_contributors (list[str] | None, optional): List of contributor
+                                                              usernames who are from
+                                                              outside the owning team.
+        innersource_contribution_counts (dict[str, int] | None, optional): Dictionary
+                                                                           mapping InnerSource
+                                                                           contributor usernames
+                                                                           to their contribution
+                                                                           counts.
+        team_member_contribution_counts (dict[str, int] | None, optional): Dictionary
+                                                                           mapping team member
+                                                                           usernames to their
+                                                                           contribution counts.
 
     Returns:
-        None
+        None: This function creates a markdown file as a side effect.
+
+    Side Effects:
+        - Creates a markdown file with the specified filename
+        - Overwrites the file if it already exists
+        - Writes UTF-8 encoded content
+
+    Report Structure:
+        The generated report includes the following sections:
+        1. Report title
+        2. Repository information
+        3. InnerSource ratio calculation
+        4. Original commit author and manager
+        5. Team members who own the repository
+        6. All contributors list
+        7. InnerSource contributors list
+        8. InnerSource contribution counts
+        9. Team member contribution counts
+
+    Examples:
+        >>> # Generate a basic report
+        >>> write_to_markdown(
+        ...     report_title="My Repository InnerSource Report",
+        ...     output_file="my_report.md",
+        ...     innersource_ratio=0.35,
+        ...     repo_data=repo_object
+        ... )
+
+        >>> # Generate a complete report with all data
+        >>> write_to_markdown(
+        ...     report_title="Complete Analysis",
+        ...     output_file="analysis.md",
+        ...     innersource_ratio=0.42,
+        ...     repo_data=repo_object,
+        ...     original_commit_author="alice",
+        ...     original_commit_author_manager="bob",
+        ...     team_members_that_own_the_repo=["alice", "bob", "charlie"],
+        ...     all_contributors=["alice", "bob", "charlie", "dave", "eve"],
+        ...     innersource_contributors=["dave", "eve"],
+        ...     innersource_contribution_counts={"dave": 15, "eve": 8},
+        ...     team_member_contribution_counts={"alice": 25, "bob": 12, "charlie": 5}
+        ... )
     """
     output_file_name = output_file if output_file else "innersource_report.md"
     with open(output_file_name, "w", encoding="utf-8") as report_file:
