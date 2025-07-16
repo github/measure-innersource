@@ -143,7 +143,7 @@ def get_github_app_installation_token(
         - Network errors and API failures are handled gracefully with None return
 
     Examples:
-        >>> private_key = b"-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----"
+        >>> private_key = b"-----BEGIN PRIVATE KEY-----\\n[key content]\\n-----END PRIVATE KEY-----"
         >>> token = get_github_app_installation_token(
         ...     ghe="",
         ...     gh_app_id="12345",
