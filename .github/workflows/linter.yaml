@@ -36,3 +36,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTIONS_COMMAND_ARGS: -shellcheck=
           VALIDATE_MARKDOWN_PRETTIER: false
+          VALIDATE_GITHUB_ACTIONS_ZIZMOR: false
