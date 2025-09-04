@@ -18,7 +18,7 @@ COPY requirements.txt *.py /action/workspace/
 RUN python3 -m pip install --no-cache-dir -r requirements.txt \
     && apt-get -y update \
     && apt-get -y install --no-install-recommends git=1:2.47.2-0.2 \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
     && addgroup --system appuser \
     && adduser --system --ingroup appuser --home /action/workspace --disabled-login appuser \
     && chown -R appuser:appuser /action/workspace
