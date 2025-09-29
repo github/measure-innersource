@@ -2,12 +2,13 @@
 
 import io
 import logging
+import unittest
 from unittest.mock import patch
 
 from logging_config import get_logger, setup_logging
 
 
-class TestLoggingConfig:
+class TestLoggingConfig(unittest.TestCase):
     """Test cases for logging configuration"""
 
     def test_setup_logging_default_level(self):

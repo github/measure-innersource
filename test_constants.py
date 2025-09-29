@@ -1,9 +1,11 @@
 """Tests for constants.py"""
 
+import unittest
+
 from constants import DEFAULT_CHUNK_SIZE, GITHUB_ISSUE_BODY_MAX_CHARS, MIN_CHUNK_SIZE
 
 
-class TestConstants:
+class TestConstants(unittest.TestCase):
     """Test cases for constants"""
 
     def test_github_issue_body_max_chars(self):
