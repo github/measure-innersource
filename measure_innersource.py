@@ -234,6 +234,16 @@ def main():  # pragma: no cover
         logger.info("Analyzing all contributors in the repository...")
         for contributor in repo_data.contributors():
             all_contributors.append(contributor.login)
+
+            # Check if contributor is not found in org chart
+            if contributor.login not in org_data:
+                logger.warning(
+                    "Contributor '%s' not found in org chart. "
+                    "Excluding from InnerSource analysis.",
+                    contributor.login
+                )
+                continue
+
             if (
                 contributor.login not in team_members_that_own_the_repo
                 and "[bot]" not in contributor.login

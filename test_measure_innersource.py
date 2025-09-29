@@ -154,6 +154,84 @@ def test_main_missing_user_in_org_chart(tmp_path, monkeypatch, caplog):
 
             # Should NOT contain the log message about
             # "Original commit author: X, with manager: Y"
-            assert not any(isinstance(msg, str) and "Original commit author:" 
-                           in msg and "with manager:" in msg for msg in 
+            assert not any(isinstance(msg, str) and "Original commit author:"
+                           in msg and "with manager:" in msg for msg in
                            info_calls)
+
+
+def test_contributors_missing_from_org_chart_excluded(tmp_path, monkeypatch):
+    """Test that contributors missing from org chart are excluded from
+    InnerSource analysis."""
+    # Switch working directory to tmp_path
+    monkeypatch.chdir(tmp_path)
+
+    # Create org-data.json with some users
+    org_data = {
+        "original_author": {"manager": "manager1"},
+        "manager1": {"manager": "director1"},
+        "user1": {"manager": "manager1"}
+    }
+
+    org_file = tmp_path / "org-data.json"
+    org_file.write_text(json.dumps(org_data), encoding="utf-8")
+
+    # Mock GitHub repository and commit data
+    mock_original_author = MagicMock()
+    mock_original_author.login = "original_author"
+
+    mock_commit = MagicMock()
+    mock_commit.author = mock_original_author
+
+    # Mock contributors - include one that's not in org_data
+    mock_contributor1 = MagicMock()
+    mock_contributor1.login = "unknown_contributor"  # Not in org_data
+
+    mock_repo = MagicMock()
+    mock_repo.full_name = "test/repo"
+    mock_repo.commits.return_value = [mock_commit]
+    mock_repo.contributors.return_value = [mock_contributor1]
+    # Mock empty pull requests and issues to avoid infinite loops
+    mock_repo.pull_requests.return_value = iter([])
+    mock_repo.issues.return_value = iter([])
+
+    mock_github = MagicMock()
+    mock_github.repository.return_value = mock_repo
+
+    # Mock environment variables
+    mock_env_vars = MagicMock()
+    mock_env_vars.github_token = "fake_token"
+    mock_env_vars.github_enterprise_hostname = None
+    mock_env_vars.github_org = "test"
+    mock_env_vars.github_repo = "repo"
+    mock_env_vars.gh_app_id = None
+    mock_env_vars.gh_app_installation_id = None
+    mock_env_vars.gh_app_private_key_bytes = None
+    mock_env_vars.gh_app_enterprise_only = False
+    mock_env_vars.report_title = "Test Report"
+    mock_env_vars.output_file = "test_output.md"
+    mock_env_vars.chunk_size = 100
+
+    # Apply mocks
+    with patch('measure_innersource.get_env_vars',
+               return_value=mock_env_vars), \
+         patch('measure_innersource.auth_to_github',
+               return_value=mock_github), \
+         patch('measure_innersource.setup_logging') as mock_setup_logging, \
+         patch('measure_innersource.write_to_markdown'), \
+         patch('measure_innersource.evaluate_markdown_file_size'):
+
+        # Configure logging to capture our test
+        mock_logger = MagicMock()
+        mock_setup_logging.return_value = mock_logger
+
+        with patch('measure_innersource.get_logger',
+                   return_value=mock_logger):
+            # Call main function
+            mi.main()
+
+            # Verify that warning was logged about missing contributor
+            mock_logger.warning.assert_any_call(
+                "Contributor '%s' not found in org chart. "
+                "Excluding from InnerSource analysis.",
+                "unknown_contributor"
+            )
