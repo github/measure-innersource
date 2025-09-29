@@ -1,5 +1,8 @@
 """Unit tests for measure_innersource.evaluate_markdown_file_size."""
 
+import json
+from unittest.mock import MagicMock, patch
+
 import measure_innersource as mi
 import pytest
 
@@ -67,3 +70,89 @@ def test_evaluate_markdown_file_size_no_split(tmp_path, monkeypatch):
     # The file should remain unchanged
     assert file.exists()
     assert file.read_text(encoding="utf-8") == "small"
+
+
+def test_main_missing_user_in_org_chart(tmp_path, monkeypatch, caplog):
+    """Test main function logs warning and exits when original commit author
+    is missing from org chart."""
+    # Switch working directory to tmp_path
+    monkeypatch.chdir(tmp_path)
+
+    # Create org-data.json with some users, but not the original commit author
+    org_data = {
+        "manager1": {"manager": "director1"},
+        "user1": {"manager": "manager1"},
+        "user2": {"manager": "manager1"}
+    }
+
+    org_file = tmp_path / "org-data.json"
+    org_file.write_text(json.dumps(org_data), encoding="utf-8")
+
+    # Mock GitHub repository and commit data
+    mock_author = MagicMock()
+    mock_author.login = "missing_user"  # This user is not in org_data
+
+    mock_commit = MagicMock()
+    mock_commit.author = mock_author
+
+    mock_repo = MagicMock()
+    mock_repo.full_name = "test/repo"
+
+    # Mock commits to return our mock commit as the first/oldest commit
+    mock_repo.commits.return_value = [mock_commit]
+
+    mock_github = MagicMock()
+    mock_github.repository.return_value = mock_repo
+
+    # Mock environment variables
+    mock_env_vars = MagicMock()
+    mock_env_vars.github_token = "fake_token"
+    mock_env_vars.github_enterprise_hostname = None
+    mock_env_vars.github_org = "test"
+    mock_env_vars.github_repo = "repo"
+    mock_env_vars.gh_app_id = None
+    mock_env_vars.gh_app_installation_id = None
+    mock_env_vars.gh_app_private_key_bytes = None
+    mock_env_vars.gh_app_enterprise_only = False
+    mock_env_vars.report_title = "Test Report"
+    mock_env_vars.output_file = "test_output.md"
+
+    # Apply mocks
+    with patch('measure_innersource.get_env_vars',
+               return_value=mock_env_vars), \
+         patch('measure_innersource.auth_to_github',
+               return_value=mock_github), \
+         patch('measure_innersource.setup_logging') as mock_setup_logging:
+
+        # Configure logging to capture our test
+        mock_logger = MagicMock()
+        mock_setup_logging.return_value = mock_logger
+
+        with patch('measure_innersource.get_logger',
+                   return_value=mock_logger):
+            # Call main function
+            mi.main()
+
+            # Verify that warning was logged about missing user
+            mock_logger.warning.assert_called_with(
+                "Original commit author '%s' not found in org chart. "
+                "Cannot determine team boundaries for InnerSource "
+                "measurement.",
+                "missing_user"
+            )
+
+            # Verify that the function returned early (didn't process further)
+            # by checking that subsequent info logs were not called
+            info_calls = [call[0][0] for call in
+                          mock_logger.info.call_args_list]
+
+            # Should have logged about reading org data and analyzing first
+            # commit, but should NOT have logged about original commit author
+            # with manager
+            assert "Reading in org data from org-data.json..." in info_calls
+            assert "Analyzing first commit..." in info_calls
+
+            # Should NOT contain the log message about
+            # "Original commit author: X, with manager: Y"
+            assert not any("Original commit author:" in msg and
+                           "with manager:" in msg for msg in info_calls)

@@ -168,11 +168,25 @@ def main():  # pragma: no cover
         logger.info("Analyzing first commit...")
         commits = repo_data.commits()
         # Paginate to the last page to get the oldest commit
-        # commits is a GitHubIterator, so you can use .count to get total, then get the last one
+        # commits is a GitHubIterator, so you can use .count to get total,
+        # then get the last one
         commit_list = list(commits)
         first_commit = commit_list[-1]  # The last in the list is the oldest
         original_commit_author = first_commit.author.login
-        original_commit_author_manager = org_data[original_commit_author]["manager"]
+
+        # Check if original commit author exists in org chart
+        if original_commit_author not in org_data:
+            logger.warning(
+                "Original commit author '%s' not found in org chart. "
+                "Cannot determine team boundaries for InnerSource "
+                "measurement.",
+                original_commit_author
+            )
+            return
+
+        original_commit_author_manager = org_data[original_commit_author][
+            "manager"
+        ]
         logger.info(
             "Original commit author: %s, with manager: %s",
             original_commit_author,
