@@ -180,13 +180,11 @@ def main():  # pragma: no cover
                 "Original commit author '%s' not found in org chart. "
                 "Cannot determine team boundaries for InnerSource "
                 "measurement.",
-                original_commit_author
+                original_commit_author,
             )
             return
 
-        original_commit_author_manager = org_data[original_commit_author][
-            "manager"
-        ]
+        original_commit_author_manager = org_data[original_commit_author]["manager"]
         logger.info(
             "Original commit author: %s, with manager: %s",
             original_commit_author,
@@ -240,7 +238,7 @@ def main():  # pragma: no cover
                 logger.warning(
                     "Contributor '%s' not found in org chart. "
                     "Excluding from InnerSource analysis.",
-                    contributor.login
+                    contributor.login,
                 )
                 continue
 

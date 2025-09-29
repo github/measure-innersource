@@ -3,8 +3,9 @@
 import json
 from unittest.mock import MagicMock, patch
 
-import measure_innersource as mi
 import pytest
+
+import measure_innersource as mi
 
 
 def test_evaluate_markdown_file_size_splits(tmp_path, monkeypatch):
@@ -72,7 +73,7 @@ def test_evaluate_markdown_file_size_no_split(tmp_path, monkeypatch):
     assert file.read_text(encoding="utf-8") == "small"
 
 
-def test_main_missing_user_in_org_chart(tmp_path, monkeypatch, caplog):
+def test_main_missing_user_in_org_chart(tmp_path, monkeypatch):
     """Test main function logs warning and exits when original commit author
     is missing from org chart."""
     # Switch working directory to tmp_path
@@ -82,7 +83,7 @@ def test_main_missing_user_in_org_chart(tmp_path, monkeypatch, caplog):
     org_data = {
         "manager1": {"manager": "director1"},
         "user1": {"manager": "manager1"},
-        "user2": {"manager": "manager1"}
+        "user2": {"manager": "manager1"},
     }
 
     org_file = tmp_path / "org-data.json"
@@ -118,18 +119,15 @@ def test_main_missing_user_in_org_chart(tmp_path, monkeypatch, caplog):
     mock_env_vars.output_file = "test_output.md"
 
     # Apply mocks
-    with patch('measure_innersource.get_env_vars',
-               return_value=mock_env_vars), \
-         patch('measure_innersource.auth_to_github',
-               return_value=mock_github), \
-         patch('measure_innersource.setup_logging') as mock_setup_logging:
+    with patch("measure_innersource.get_env_vars", return_value=mock_env_vars), patch(
+        "measure_innersource.auth_to_github", return_value=mock_github
+    ), patch("measure_innersource.setup_logging") as mock_setup_logging:
 
         # Configure logging to capture our test
         mock_logger = MagicMock()
         mock_setup_logging.return_value = mock_logger
 
-        with patch('measure_innersource.get_logger',
-                   return_value=mock_logger):
+        with patch("measure_innersource.get_logger", return_value=mock_logger):
             # Call main function
             mi.main()
 
@@ -138,13 +136,14 @@ def test_main_missing_user_in_org_chart(tmp_path, monkeypatch, caplog):
                 "Original commit author '%s' not found in org chart. "
                 "Cannot determine team boundaries for InnerSource "
                 "measurement.",
-                "missing_user"
+                "missing_user",
             )
 
             # Verify that the function returned early (didn't process further)
             # by checking that subsequent info logs were not called
-            info_calls = [call[0][0] for call in
-                          mock_logger.info.call_args_list if call[0]]
+            info_calls = [
+                call[0][0] for call in mock_logger.info.call_args_list if call[0]
+            ]
 
             # Should have logged about reading org data and analyzing first
             # commit, but should NOT have logged about original commit author
@@ -154,9 +153,12 @@ def test_main_missing_user_in_org_chart(tmp_path, monkeypatch, caplog):
 
             # Should NOT contain the log message about
             # "Original commit author: X, with manager: Y"
-            assert not any(isinstance(msg, str) and "Original commit author:"
-                           in msg and "with manager:" in msg for msg in
-                           info_calls)
+            assert not any(
+                isinstance(msg, str)
+                and "Original commit author:" in msg
+                and "with manager:" in msg
+                for msg in info_calls
+            )
 
 
 def test_contributors_missing_from_org_chart_excluded(tmp_path, monkeypatch):
@@ -169,7 +171,7 @@ def test_contributors_missing_from_org_chart_excluded(tmp_path, monkeypatch):
     org_data = {
         "original_author": {"manager": "manager1"},
         "manager1": {"manager": "director1"},
-        "user1": {"manager": "manager1"}
+        "user1": {"manager": "manager1"},
     }
 
     org_file = tmp_path / "org-data.json"
@@ -212,20 +214,19 @@ def test_contributors_missing_from_org_chart_excluded(tmp_path, monkeypatch):
     mock_env_vars.chunk_size = 100
 
     # Apply mocks
-    with patch('measure_innersource.get_env_vars',
-               return_value=mock_env_vars), \
-         patch('measure_innersource.auth_to_github',
-               return_value=mock_github), \
-         patch('measure_innersource.setup_logging') as mock_setup_logging, \
-         patch('measure_innersource.write_to_markdown'), \
-         patch('measure_innersource.evaluate_markdown_file_size'):
+    with patch("measure_innersource.get_env_vars", return_value=mock_env_vars), patch(
+        "measure_innersource.auth_to_github", return_value=mock_github
+    ), patch("measure_innersource.setup_logging") as mock_setup_logging, patch(
+        "measure_innersource.write_to_markdown"
+    ), patch(
+        "measure_innersource.evaluate_markdown_file_size"
+    ):
 
         # Configure logging to capture our test
         mock_logger = MagicMock()
         mock_setup_logging.return_value = mock_logger
 
-        with patch('measure_innersource.get_logger',
-                   return_value=mock_logger):
+        with patch("measure_innersource.get_logger", return_value=mock_logger):
             # Call main function
             mi.main()
 
@@ -233,5 +234,5 @@ def test_contributors_missing_from_org_chart_excluded(tmp_path, monkeypatch):
             mock_logger.warning.assert_any_call(
                 "Contributor '%s' not found in org chart. "
                 "Excluding from InnerSource analysis.",
-                "unknown_contributor"
+                "unknown_contributor",
             )
