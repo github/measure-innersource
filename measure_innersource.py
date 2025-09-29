@@ -12,6 +12,8 @@ from pathlib import Path
 
 from auth import auth_to_github, get_github_app_installation_token
 from config import get_env_vars
+from constants import GITHUB_ISSUE_BODY_MAX_CHARS
+from logging_config import get_logger, setup_logging
 from markdown_helpers import markdown_too_large_for_issue_body, split_markdown_file
 from markdown_writer import write_to_markdown
 
@@ -38,15 +40,20 @@ def evaluate_markdown_file_size(output_file: str) -> None:
     """
     output_file_name = output_file if output_file else "innersource_report.md"
     file_name_without_extension = Path(output_file_name).stem
-    max_char_count = 65535
+    max_char_count = GITHUB_ISSUE_BODY_MAX_CHARS
+    logger = get_logger()
+
     if markdown_too_large_for_issue_body(output_file_name, max_char_count):
         split_markdown_file(output_file_name, max_char_count)
         shutil.move(output_file_name, f"{file_name_without_extension}_full.md")
         shutil.move(f"{file_name_without_extension}_0.md", output_file_name)
-        print(
-            f"The markdown file is too large for GitHub issue body and has been \
-split into multiple files. ie. {output_file_name}, {file_name_without_extension}_1.md, etc. \
-The full file is saved as {file_name_without_extension}_full.md\n"
+        logger.info(
+            "The markdown file is too large for GitHub issue body and has been "
+            "split into multiple files. ie. %s, %s_1.md, etc. "
+            "The full file is saved as %s_full.md\n",
+            output_file_name,
+            file_name_without_extension,
+            file_name_without_extension,
         )
 
 
@@ -82,7 +89,9 @@ def main():  # pragma: no cover
         - Requires org-data.json file to be present in the current directory
     """
 
-    print("Starting innersource-measure tool...")
+    # Initialize logging
+    logger = setup_logging()
+    logger.info("Starting innersource-measure tool...")
 
     # Get the environment variables for use in the script
     env_vars = get_env_vars()
@@ -117,32 +126,38 @@ def main():  # pragma: no cover
     # evaluate_markdown_file_size(output_file)
 
     if github_connection:
-        print("connection successful")
+        logger.info("Connection to GitHub successful")
 
         # fetch repository data
-        print(f"Fetching repository data for {owner}/{repo}...")
+        logger.info("Fetching repository data for %s/%s...", owner, repo)
         repo_data = github_connection.repository(owner, repo)
         if not repo_data:
-            print(f"Unable to fetch repository {owner}/{repo} specified. Exiting.")
+            logger.error(
+                "Unable to fetch repository %s/%s specified. Exiting.", owner, repo
+            )
             return
 
-        print(f"Repository {repo_data.full_name} found.")
+        logger.info("Repository %s found.", repo_data.full_name)
 
         # Read in the org data in org-data.json
         org_data = None
         org_data_path = Path("org-data.json")
         if org_data_path.exists():
-            print("Reading in org data from org-data.json...")
+            logger.info("Reading in org data from org-data.json...")
             with open(org_data_path, "r", encoding="utf-8") as org_file:
                 org_data = json.load(org_file)
-            print("Org data read successfully.")
+            logger.info("Org data read successfully.")
         else:
-            print("No org data found. InnerSource collaboration cannot be measured.")
+            logger.warning(
+                "No org data found. InnerSource collaboration cannot be measured."
+            )
 
         if org_data:
-            print("Org data found. Measuring InnerSource collaboration...")
+            logger.info("Org data found. Measuring InnerSource collaboration...")
         else:
-            print("No org data found. InnerSource collaboration cannot be measured.")
+            logger.error(
+                "No org data found. InnerSource collaboration cannot be measured."
+            )
             return
 
         # Initialize contributor lists and team members list
@@ -150,7 +165,7 @@ def main():  # pragma: no cover
         innersource_contributors = []
         team_members_that_own_the_repo = []
 
-        print("Analyzing first commit...")
+        logger.info("Analyzing first commit...")
         commits = repo_data.commits()
         # Paginate to the last page to get the oldest commit
         # commits is a GitHubIterator, so you can use .count to get total, then get the last one
@@ -158,9 +173,10 @@ def main():  # pragma: no cover
         first_commit = commit_list[-1]  # The last in the list is the oldest
         original_commit_author = first_commit.author.login
         original_commit_author_manager = org_data[original_commit_author]["manager"]
-        print(
-            f"Original commit author: {original_commit_author}, \
-with manager: {original_commit_author_manager}"
+        logger.info(
+            "Original commit author: %s, with manager: %s",
+            original_commit_author,
+            original_commit_author_manager,
         )
         # Create a dictionary mapping users to their managers for faster lookups
         user_to_manager = {}
@@ -195,11 +211,13 @@ with manager: {original_commit_author_manager}"
 
         # Remove duplicates from the team members list
         team_members_that_own_the_repo = list(set(team_members_that_own_the_repo))
-        print(f"Team members that own the repo: {team_members_that_own_the_repo}")
+        logger.debug(
+            "Team members that own the repo: %s", team_members_that_own_the_repo
+        )
 
         # For each contributor, check if they are in the team that owns the repo list
         # and if not, add them to the innersource contributors list
-        print("Analyzing all contributors in the repository...")
+        logger.info("Analyzing all contributors in the repository...")
         for contributor in repo_data.contributors():
             all_contributors.append(contributor.login)
             if (
@@ -208,17 +226,17 @@ with manager: {original_commit_author_manager}"
             ):
                 innersource_contributors.append(contributor.login)
 
-        print(f"All contributors: {all_contributors}")
-        print(f"Innersource contributors: {innersource_contributors}")
+        logger.debug("All contributors: %s", all_contributors)
+        logger.debug("Innersource contributors: %s", innersource_contributors)
 
         # Process data in chunks to avoid memory issues while maintaining performance
         chunk_size = env_vars.chunk_size
-        print(f"Using chunk size of {chunk_size} for data processing")
+        logger.info("Using chunk size of %s for data processing", chunk_size)
 
-        print("Pre-processing contribution data...")
+        logger.info("Pre-processing contribution data...")
 
         # Create mapping of commit authors to commit counts
-        print("Processing commits...")
+        logger.info("Processing commits...")
         commit_author_counts = {}
         for commit in commit_list:
             if hasattr(commit.author, "login"):
@@ -226,7 +244,7 @@ with manager: {original_commit_author_manager}"
                 commit_author_counts[author] = commit_author_counts.get(author, 0) + 1
 
         # Process pull requests in chunks
-        print("Processing pull requests in chunks...")
+        logger.info("Processing pull requests in chunks...")
         pr_author_counts = {}
         total_prs = 0
 
@@ -252,12 +270,12 @@ with manager: {original_commit_author_manager}"
                     pr_author_counts[author] = pr_author_counts.get(author, 0) + 1
 
             total_prs += len(chunk)
-            print(f"  Processed {total_prs} pull requests so far...")
+            logger.debug("  Processed %s pull requests so far...", total_prs)
 
-        print(f"Found and processed {total_prs} pull requests")
+        logger.info("Found and processed %s pull requests", total_prs)
 
         # Process issues in chunks
-        print("Processing issues in chunks...")
+        logger.info("Processing issues in chunks...")
         issue_author_counts = {}
         total_issues = 0
 
@@ -283,13 +301,13 @@ with manager: {original_commit_author_manager}"
                     issue_author_counts[author] = issue_author_counts.get(author, 0) + 1
 
             total_issues += len(chunk)
-            print(f"  Processed {total_issues} issues so far...")
+            logger.debug("  Processed %s issues so far...", total_issues)
 
-        print(f"Found and processed {total_issues} issues")
+        logger.info("Found and processed %s issues", total_issues)
 
         # Count contributions for each innersource contributor using precompiled dictionaries
         innersource_contribution_counts = {}
-        print("Counting contributions for each innersource contributor...")
+        logger.info("Counting contributions for each innersource contributor...")
         for contributor in innersource_contributors:
             # Initialize counter for this contributor
             innersource_contribution_counts[contributor] = 0
@@ -309,13 +327,13 @@ with manager: {original_commit_author_manager}"
                 contributor, 0
             )
 
-        print("Innersource contribution counts:")
+        logger.debug("Innersource contribution counts:")
         for contributor, count in innersource_contribution_counts.items():
-            print(f"  {contributor}: {count} contributions")
+            logger.debug("  %s: %s contributions", contributor, count)
 
         # Count contributions for each team member using precompiled dictionaries
         team_member_contribution_counts = {}
-        print("Counting contributions for each team member that owns the repo...")
+        logger.info("Counting contributions for each team member that owns the repo...")
         for member in team_members_that_own_the_repo:
             # Initialize counter for this team member
             team_member_contribution_counts[member] = 0
@@ -333,10 +351,10 @@ with manager: {original_commit_author_manager}"
                 member, 0
             )
 
-        print("Team member contribution counts:")
+        logger.debug("Team member contribution counts:")
         for member, count in team_member_contribution_counts.items():
             if count > 0:
-                print(f"  {member}: {count} contributions")
+                logger.debug("  %s: %s contributions", member, count)
 
         # Calculate the ratio of innersource contributions to total contributions
         total_contributions = sum(innersource_contribution_counts.values()) + sum(
@@ -349,7 +367,7 @@ with manager: {original_commit_author_manager}"
         else:
             innersource_ratio = 0
 
-        print(f"Innersource contribution ratio: {innersource_ratio:.2%}")
+        logger.info("Innersource contribution ratio: %.2f%%", innersource_ratio * 100)
 
         # Write the results to a markdown file using report_title and output_file
         write_to_markdown(
@@ -367,10 +385,10 @@ with manager: {original_commit_author_manager}"
         )
 
         evaluate_markdown_file_size(output_file)
-        print(f"InnerSource report written to {output_file}")
+        logger.info("InnerSource report written to %s", output_file)
 
     else:
-        print("Failed to connect to GitHub. Exiting.")
+        logger.error("Failed to connect to GitHub. Exiting.")
 
 
 if __name__ == "__main__":

@@ -13,6 +13,7 @@ Functions:
 import os
 from os.path import dirname, join
 
+from constants import DEFAULT_CHUNK_SIZE, MIN_CHUNK_SIZE
 from dotenv import load_dotenv
 
 
@@ -233,14 +234,14 @@ def get_env_vars(test: bool = False) -> EnvVars:
     rate_limit_bypass = get_bool_env_var("RATE_LIMIT_BYPASS", False)
 
     # Get the chunk size for processing data in batches (for memory efficiency)
-    chunk_size_str = os.getenv("CHUNK_SIZE", "100")
+    chunk_size_str = os.getenv("CHUNK_SIZE", str(DEFAULT_CHUNK_SIZE))
     try:
         chunk_size = int(chunk_size_str)
         # Ensure a reasonable minimum chunk size
-        chunk_size = max(chunk_size, 10)
+        chunk_size = max(chunk_size, MIN_CHUNK_SIZE)
     except ValueError:
-        # Default to 100 if not a valid integer
-        chunk_size = 100
+        # Default to DEFAULT_CHUNK_SIZE if not a valid integer
+        chunk_size = DEFAULT_CHUNK_SIZE
 
     return EnvVars(
         gh_app_id,
