@@ -3,6 +3,7 @@
 import os
 import unittest
 
+from constants import GITHUB_ISSUE_BODY_MAX_CHARS
 from markdown_helpers import markdown_too_large_for_issue_body, split_markdown_file
 
 
@@ -16,7 +17,7 @@ class TestMarkdownHelpers(unittest.TestCase):
         Test the markdown_too_large_for_issue_body function.
         """
         # Define a sample markdown file content
-        max_char_count = 65535
+        max_char_count = GITHUB_ISSUE_BODY_MAX_CHARS
         markdown_content = "a\n" * max_char_count
 
         # Write the markdown content to a temporary file
@@ -39,7 +40,7 @@ class TestMarkdownHelpers(unittest.TestCase):
 
         # Define a sample markdown file content with 4 times the maximum character count
         multiple_of_max = 4
-        max_char_count = 65535
+        max_char_count = GITHUB_ISSUE_BODY_MAX_CHARS
         repeated_content = "a\n"
         markdown_content = repeated_content * int(
             (max_char_count * multiple_of_max) / len(repeated_content)
