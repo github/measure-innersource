@@ -174,7 +174,7 @@ def main():  # pragma: no cover
         original_commit_author = first_commit.author.login
         original_commit_author_manager = org_data[original_commit_author]["manager"]
         logger.info(
-            "Original commit author: %s, " "with manager: %s",
+            "Original commit author: %s, with manager: %s",
             original_commit_author,
             original_commit_author_manager,
         )
