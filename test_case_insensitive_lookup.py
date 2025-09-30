@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from measure_innersource import CaseInsensitiveDict
+from measure_innersource import CaseInsensitiveDict, main
 
 
 class TestCaseInsensitiveDict(unittest.TestCase):
@@ -187,9 +187,7 @@ class TestCaseInsensitiveLookupIntegration(unittest.TestCase):
             try:
                 os.chdir(tmpdir)
 
-                # Import and run main
-                from measure_innersource import main
-
+                # Run main
                 main()
 
                 # Verify that write_to_markdown was called (meaning no KeyError occurred)
