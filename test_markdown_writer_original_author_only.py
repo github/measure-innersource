@@ -41,6 +41,7 @@ def test_write_to_markdown_original_author_only():
             innersource_contributors=["contributor1"],
             innersource_contribution_counts={"contributor1": 5},
             team_member_contribution_counts={"team_member1": 10},
+            team_ownership_explicitly_specified=False,
         )
 
         # Read the generated file

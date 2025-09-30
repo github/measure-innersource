@@ -46,6 +46,7 @@ class TestWriteToMarkdownEdgeCases:
                 innersource_contributors=["contributor1"],
                 innersource_contribution_counts={"contributor1": 5},
                 team_member_contribution_counts={"team_member1": 10},
+                team_ownership_explicitly_specified=False,
             )
 
             # Read the generated file
@@ -93,6 +94,7 @@ class TestWriteToMarkdownEdgeCases:
                 innersource_contributors=None,  # Empty innersource contributors
                 innersource_contribution_counts={"contributor1": 5},
                 team_member_contribution_counts={"team_member1": 10},
+                team_ownership_explicitly_specified=False,
             )
 
             # Read the generated file

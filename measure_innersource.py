@@ -414,6 +414,9 @@ def main():  # pragma: no cover
             innersource_contributors=innersource_contributors,
             innersource_contribution_counts=innersource_contribution_counts,
             team_member_contribution_counts=team_member_contribution_counts,
+            team_ownership_explicitly_specified=bool(
+                owning_team
+            ),  # True if owning_team is specified
         )
 
         evaluate_markdown_file_size(output_file)

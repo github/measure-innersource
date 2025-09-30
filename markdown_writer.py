@@ -40,6 +40,7 @@ def write_to_markdown(
     innersource_contributors=None,
     innersource_contribution_counts=None,
     team_member_contribution_counts=None,
+    team_ownership_explicitly_specified=False,
 ) -> None:
     """
     Generate a comprehensive InnerSource collaboration report in markdown format.
@@ -84,6 +85,10 @@ def write_to_markdown(
                                                                            mapping team member
                                                                            usernames to their
                                                                            contribution counts.
+        team_ownership_explicitly_specified (bool, optional): Flag indicating whether team
+                                                            ownership is explicitly specified
+                                                            rather than derived from commit history.
+                                                            Defaults to False.
 
     Returns:
         None: This function creates a markdown file as a side effect.
@@ -126,7 +131,22 @@ def write_to_markdown(
         ...     all_contributors=["alice", "bob", "charlie", "dave", "eve"],
         ...     innersource_contributors=["dave", "eve"],
         ...     innersource_contribution_counts={"dave": 15, "eve": 8},
-        ...     team_member_contribution_counts={"alice": 25, "bob": 12, "charlie": 5}
+        ...     team_member_contribution_counts={"alice": 25, "bob": 12, "charlie": 5},
+        ...     team_ownership_explicitly_specified=False
+        ... )
+
+        >>> # Generate a report with explicitly specified team ownership
+        >>> write_to_markdown(
+        ...     report_title="Team Ownership Report",
+        ...     output_file="team_report.md",
+        ...     innersource_ratio=0.38,
+        ...     repo_data=repo_object,
+        ...     team_members_that_own_the_repo=["david", "emily", "frank"],
+        ...     all_contributors=["david", "emily", "frank", "greg", "hannah"],
+        ...     innersource_contributors=["greg", "hannah"],
+        ...     innersource_contribution_counts={"greg": 12, "hannah": 6},
+        ...     team_member_contribution_counts={"david": 18, "emily": 9, "frank": 7},
+        ...     team_ownership_explicitly_specified=True
         ... )
     """
     output_file_name = output_file if output_file else "innersource_report.md"
@@ -138,7 +158,9 @@ def write_to_markdown(
             return
         report_file.write(f"## Repository: {repo_data.full_name}\n\n")
         report_file.write(f"### InnerSource Ratio: {innersource_ratio:.2%}\n\n")
-        if original_commit_author and original_commit_author_manager:
+        if team_ownership_explicitly_specified:
+            report_file.write("### Team ownership is explicitly specified\n\n")
+        elif original_commit_author and original_commit_author_manager:
             report_file.write(
                 f"### Original Commit Author: {original_commit_author} (Manager: {original_commit_author_manager})\n\n"
             )
@@ -147,7 +169,9 @@ def write_to_markdown(
                 f"### Original Commit Author: {original_commit_author}\n\n"
             )
         else:
-            report_file.write("### Team ownership is explicitly specified\n\n")
+            report_file.write(
+                "### Original commit author information not available\n\n"
+            )
         report_file.write("## Team Members that Own the Repo:\n")
         if team_members_that_own_the_repo:
             for member in team_members_that_own_the_repo:

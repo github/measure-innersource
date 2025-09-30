@@ -13,7 +13,7 @@ def test_write_to_markdown_with_owning_team_override(tmp_path):
     mock_repo = MagicMock()
     mock_repo.full_name = "org/repo"
 
-    # Call with None for original_commit_author and manager (simulating owning_team override)
+    # Call with team_ownership_explicitly_specified=True
     write_to_markdown(
         report_title="Test Report with Owning Team",
         output_file=str(output_file),
@@ -26,6 +26,7 @@ def test_write_to_markdown_with_owning_team_override(tmp_path):
         innersource_contributors=["dave", "eve"],
         innersource_contribution_counts={"dave": 15, "eve": 8},
         team_member_contribution_counts={"alice": 25, "bob": 12, "charlie": 5},
+        team_ownership_explicitly_specified=True,
     )
 
     # Verify the file was created
@@ -70,6 +71,7 @@ def test_write_to_markdown_with_original_author(tmp_path):
         innersource_contributors=["dave", "eve"],
         innersource_contribution_counts={"dave": 15, "eve": 8},
         team_member_contribution_counts={"alice": 25, "bob": 12, "charlie": 5},
+        team_ownership_explicitly_specified=False,
     )
 
     # Verify the file was created
