@@ -225,8 +225,6 @@ def main():  # pragma: no cover
             ghe, gh_app_id, gh_app_private_key_bytes, gh_app_installation_id
         )
 
-    # evaluate_markdown_file_size(output_file)
-
     if github_connection:
         logger.info("Connection to GitHub successful")
 
