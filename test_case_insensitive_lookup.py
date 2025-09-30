@@ -1,6 +1,8 @@
 """Unit tests for case-insensitive username lookup in org-data.json."""
 
 import json
+import os
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -104,6 +106,17 @@ class TestCaseInsensitiveDict(unittest.TestCase):
         values = list(self.case_insensitive_dict.values())
         self.assertEqual(len(values), 4)
 
+    def test_duplicate_case_insensitive_keys(self):
+        """Test that ValueError is raised for duplicate case-insensitive keys."""
+        duplicate_data = {
+            "alice": {"manager": "bob"},
+            "Alice": {"manager": "charlie"},  # Duplicate!
+        }
+        with self.assertRaises(ValueError) as context:
+            CaseInsensitiveDict(duplicate_data)
+        self.assertIn("Duplicate case-insensitive keys found", str(context.exception))
+        self.assertIn("alice", str(context.exception).lower())
+
 
 class TestCaseInsensitiveLookupIntegration(unittest.TestCase):
     """Integration tests for case-insensitive username lookup in measure_innersource."""
@@ -113,7 +126,11 @@ class TestCaseInsensitiveLookupIntegration(unittest.TestCase):
     @patch("measure_innersource.get_env_vars")
     @patch("measure_innersource.write_to_markdown")
     def test_username_lookup_case_insensitive(
-        self, mock_write, mock_get_env_vars, mock_auth, mock_evaluate  # pylint: disable=unused-argument
+        self,
+        mock_write,
+        mock_get_env_vars,
+        mock_auth,
+        mock_evaluate,  # pylint: disable=unused-argument
     ):
         """Test that username lookups in org-data.json are case-insensitive."""
         # Create a temporary org-data.json file with lowercase username
@@ -160,16 +177,12 @@ class TestCaseInsensitiveLookupIntegration(unittest.TestCase):
         mock_repo.issues.return_value = iter([])
 
         # Create temp directory for org-data.json
-        import tempfile
-
         with tempfile.TemporaryDirectory() as tmpdir:
             org_data_path = Path(tmpdir) / "org-data.json"
             with open(org_data_path, "w", encoding="utf-8") as f:
                 json.dump(org_data, f)
 
             # Change to temp directory and run test
-            import os
-
             original_dir = os.getcwd()
             try:
                 os.chdir(tmpdir)

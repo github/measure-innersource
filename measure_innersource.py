@@ -24,6 +24,10 @@ class CaseInsensitiveDict:
     This class wraps a dictionary and provides case-insensitive access to its values
     while preserving the original data structure. It's used to handle GitHub usernames
     which should be matched case-insensitively.
+
+    Note: If the input dictionary contains keys that differ only in case (e.g., 'User'
+    and 'user'), a ValueError will be raised during initialization to prevent ambiguity
+    and data loss.
     """
 
     def __init__(self, data):
@@ -31,10 +35,21 @@ class CaseInsensitiveDict:
 
         Args:
             data: A dictionary to wrap with case-insensitive key access
+
+        Raises:
+            ValueError: If the dictionary contains duplicate keys that differ only in case
         """
         self._data = data
         # Create a lowercase key mapping to original keys
-        self._key_map = {key.lower(): key for key in data.keys()}
+        self._key_map = {}
+        for key in data.keys():
+            normalized_key = key.lower()
+            if normalized_key in self._key_map:
+                raise ValueError(
+                    f"Duplicate case-insensitive keys found: '{self._key_map[normalized_key]}' "
+                    f"and '{key}' both normalize to '{normalized_key}'"
+                )
+            self._key_map[normalized_key] = key
 
     def __getitem__(self, key):
         """Get an item using case-insensitive key lookup.
