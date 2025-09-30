@@ -138,9 +138,16 @@ def write_to_markdown(
             return
         report_file.write(f"## Repository: {repo_data.full_name}\n\n")
         report_file.write(f"### InnerSource Ratio: {innersource_ratio:.2%}\n\n")
-        report_file.write(
-            f"### Original Commit Author: {original_commit_author} (Manager: {original_commit_author_manager})\n\n"
-        )
+        if original_commit_author and original_commit_author_manager:
+            report_file.write(
+                f"### Original Commit Author: {original_commit_author} (Manager: {original_commit_author_manager})\n\n"
+            )
+        elif original_commit_author:
+            report_file.write(
+                f"### Original Commit Author: {original_commit_author}\n\n"
+            )
+        else:
+            report_file.write("### Team ownership is explicitly specified\n\n")
         report_file.write("## Team Members that Own the Repo:\n")
         if team_members_that_own_the_repo:
             for member in team_members_that_own_the_repo:
