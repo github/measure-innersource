@@ -254,7 +254,11 @@ def get_env_vars(test: bool = False) -> EnvVars:
     owning_team = None
     if owning_team_str:
         # Parse comma-separated list and strip whitespace from each username
-        owning_team = [username.strip() for username in owning_team_str.split(",") if username.strip()]
+        owning_team = [
+            username.strip()
+            for username in owning_team_str.split(",")
+            if username.strip()
+        ]
         # If the list is empty after stripping, set to None
         if not owning_team:
             owning_team = None
