@@ -18,6 +18,93 @@ from markdown_helpers import markdown_too_large_for_issue_body, split_markdown_f
 from markdown_writer import write_to_markdown
 
 
+class CaseInsensitiveDict:
+    """A dictionary wrapper that performs case-insensitive key lookups.
+
+    This class wraps a dictionary and provides case-insensitive access to its values
+    while preserving the original data structure. It's used to handle GitHub usernames
+    which should be matched case-insensitively.
+    """
+
+    def __init__(self, data):
+        """Initialize the case-insensitive dictionary.
+
+        Args:
+            data: A dictionary to wrap with case-insensitive key access
+        """
+        self._data = data
+        # Create a lowercase key mapping to original keys
+        self._key_map = {key.lower(): key for key in data.keys()}
+
+    def __getitem__(self, key):
+        """Get an item using case-insensitive key lookup.
+
+        Args:
+            key: The key to lookup (case-insensitive)
+
+        Returns:
+            The value associated with the key
+
+        Raises:
+            KeyError: If the key is not found (case-insensitive)
+        """
+        normalized_key = key.lower()
+        if normalized_key not in self._key_map:
+            raise KeyError(key)
+        original_key = self._key_map[normalized_key]
+        return self._data[original_key]
+
+    def __contains__(self, key):
+        """Check if a key exists using case-insensitive matching.
+
+        Args:
+            key: The key to check (case-insensitive)
+
+        Returns:
+            bool: True if the key exists, False otherwise
+        """
+        return key.lower() in self._key_map
+
+    def get(self, key, default=None):
+        """Get an item with a default value if key not found.
+
+        Args:
+            key: The key to lookup (case-insensitive)
+            default: The default value to return if key not found
+
+        Returns:
+            The value associated with the key, or default if not found
+        """
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+    def items(self):
+        """Return an iterator over (key, value) pairs.
+
+        Returns:
+            Iterator of (key, value) tuples using original keys
+        """
+        return self._data.items()
+
+    def keys(self):
+        """Return an iterator over the keys.
+
+        Returns:
+            Iterator of original keys
+        """
+        return self._data.keys()
+
+    def values(self):
+        """Return an iterator over the values.
+
+        Returns:
+            Iterator of values
+        """
+        return self._data.values()
+
+
 def evaluate_markdown_file_size(output_file: str) -> None:
     """
     Evaluate the size of the markdown file and split it if it exceeds GitHub's issue body limits.
@@ -145,7 +232,9 @@ def main():  # pragma: no cover
         if org_data_path.exists():
             logger.info("Reading in org data from org-data.json...")
             with open(org_data_path, "r", encoding="utf-8") as org_file:
-                org_data = json.load(org_file)
+                raw_org_data = json.load(org_file)
+            # Wrap org_data in case-insensitive dictionary for username lookups
+            org_data = CaseInsensitiveDict(raw_org_data)
             logger.info("Org data read successfully.")
         else:
             logger.warning(
