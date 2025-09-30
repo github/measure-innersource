@@ -147,13 +147,12 @@ def test_main_missing_user_in_org_chart(tmp_path, monkeypatch):
                 call[0][0] for call in mock_logger.info.call_args_list if call[0]
             ]
 
-            # Should have logged about reading org data and analyzing first
-            # commit, but should NOT have logged about original commit author
-            # with manager
+            # Should have logged about reading org data and finding original commit author
+            # but should NOT have logged about original commit author with manager
             assert "Reading in org data from org-data.json..." in info_calls
-            assert "Analyzing first commit..." in info_calls
-
-            # Should NOT contain the log message about
+            assert (
+                "Finding original commit author..." in info_calls
+            )  # Should NOT contain the log message about
             # "Original commit author: X, with manager: Y"
             assert not any(
                 isinstance(msg, str)

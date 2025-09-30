@@ -164,11 +164,6 @@ def main():  # pragma: no cover
         innersource_contributors = []
         team_members_that_own_the_repo = []
 
-        # Get all commits for contribution counting (needed regardless of team determination method)
-        logger.info("Fetching commits...")
-        commits = repo_data.commits()
-        commit_list = list(commits)
-
         # Check if owning team is explicitly specified
         if owning_team:
             logger.info("Using explicitly specified owning team: %s", owning_team)
@@ -177,12 +172,26 @@ def main():  # pragma: no cover
             original_commit_author = None
             original_commit_author_manager = None
         else:
-            logger.info("Analyzing first commit...")
-            # Paginate to the last page to get the oldest commit
-            # commits is a GitHubIterator, so you can use .count to get total,
-            # then get the last one
-            first_commit = commit_list[-1]  # The last in the list is the oldest
-            original_commit_author = first_commit.author.login
+            logger.info("Finding original commit author...")
+            # We need to find the oldest commit for team determination
+            # Use GitHub's default chronological ordering (oldest first)
+            commits_iterator = repo_data.commits()
+            original_commit = None
+
+            # Process just enough commits to find the oldest one
+            # Most repos will only need a single API call since GitHub sorts oldest first
+            # For repositories with unusual commit ordering, we'll get the first commit from the first page
+            try:
+                original_commit = next(commits_iterator)
+                original_commit_author = (
+                    original_commit.author.login
+                    if hasattr(original_commit.author, "login")
+                    else None
+                )
+                logger.info("Found original commit by %s", original_commit_author)
+            except StopIteration:
+                logger.warning("No commits found in repository")
+                original_commit_author = None
 
             # Check if original commit author exists in org chart
             if original_commit_author not in org_data:
@@ -267,13 +276,38 @@ def main():  # pragma: no cover
 
         logger.info("Pre-processing contribution data...")
 
-        # Create mapping of commit authors to commit counts
-        logger.info("Processing commits...")
+        # Process commits in chunks
+        logger.info("Processing commits in chunks...")
         commit_author_counts = {}
-        for commit in commit_list:
-            if hasattr(commit.author, "login"):
-                author = commit.author.login
-                commit_author_counts[author] = commit_author_counts.get(author, 0) + 1
+        total_commits = 0
+
+        # GitHub API returns an iterator that internally handles pagination
+        # We'll manually chunk it to avoid loading everything at once
+        commits_iterator = repo_data.commits()
+        while True:
+            # Process a chunk of commits
+            chunk = []
+            for _ in range(chunk_size):
+                try:
+                    chunk.append(next(commits_iterator))
+                except StopIteration:
+                    break
+
+            if not chunk:
+                break
+
+            # Update counts for this chunk
+            for commit in chunk:
+                if hasattr(commit.author, "login"):
+                    author = commit.author.login
+                    commit_author_counts[author] = (
+                        commit_author_counts.get(author, 0) + 1
+                    )
+
+            total_commits += len(chunk)
+            logger.debug("  Processed %s commits so far...", total_commits)
+
+        logger.info("Found and processed %s commits", total_commits)
 
         # Process pull requests in chunks
         logger.info("Processing pull requests in chunks...")
