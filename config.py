@@ -36,6 +36,7 @@ class EnvVars:
         output_file (str): The name of the file to write the report to
         rate_limit_bypass (bool): If set to TRUE, bypass the rate limit for the GitHub API
         chunk_size (int): The number of items to process at once when fetching data (for memory efficiency)
+        owning_team (list[str] | None): Optional list of usernames that comprise the owning team (overrides algorithm)
     """
 
     def __init__(
@@ -52,6 +53,7 @@ class EnvVars:
         output_file: str,
         rate_limit_bypass: bool = False,
         chunk_size: int = 100,
+        owning_team: list[str] | None = None,
     ):
         self.gh_app_id = gh_app_id
         self.gh_app_installation_id = gh_app_installation_id
@@ -65,6 +67,7 @@ class EnvVars:
         self.output_file = output_file
         self.rate_limit_bypass = rate_limit_bypass
         self.chunk_size = chunk_size
+        self.owning_team = owning_team
 
     def __repr__(self):
         return (
@@ -80,7 +83,8 @@ class EnvVars:
             f"{self.repo},"
             f"{self.output_file},"
             f"{self.rate_limit_bypass},"
-            f"{self.chunk_size}"
+            f"{self.chunk_size},"
+            f"{self.owning_team}"
             ")"
         )
 
@@ -183,6 +187,8 @@ def get_env_vars(test: bool = False) -> EnvVars:
         - OUTPUT_FILE: Output filename (default: "innersource_report.md")
         - RATE_LIMIT_BYPASS: Set to "true" to bypass rate limiting
         - CHUNK_SIZE: Number of items to process at once (default: 100, minimum: 10)
+        - OWNING_TEAM: Comma-separated list of GitHub usernames that own the repository
+                      (overrides the built-in team determination algorithm)
 
     Examples:
         >>> os.environ['GH_TOKEN'] = 'ghp_...'
@@ -243,6 +249,20 @@ def get_env_vars(test: bool = False) -> EnvVars:
         # Default to DEFAULT_CHUNK_SIZE if not a valid integer
         chunk_size = DEFAULT_CHUNK_SIZE
 
+    # Get optional owning team override (comma-separated list of usernames)
+    owning_team_str = os.getenv("OWNING_TEAM", "").strip()
+    owning_team = None
+    if owning_team_str:
+        # Parse comma-separated list and strip whitespace from each username
+        owning_team = [
+            username.strip()
+            for username in owning_team_str.split(",")
+            if username.strip()
+        ]
+        # If the list is empty after stripping, set to None
+        if not owning_team:
+            owning_team = None
+
     return EnvVars(
         gh_app_id,
         gh_app_installation_id,
@@ -256,4 +276,5 @@ def get_env_vars(test: bool = False) -> EnvVars:
         output_file,
         rate_limit_bypass,
         chunk_size,
+        owning_team,
     )

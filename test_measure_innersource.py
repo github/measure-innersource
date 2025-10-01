@@ -99,23 +99,26 @@ def test_main_missing_user_in_org_chart(tmp_path, monkeypatch):
     mock_repo.full_name = "test/repo"
 
     # Mock commits to return our mock commit as the first/oldest commit
-    mock_repo.commits.return_value = [mock_commit]
+    # Create a proper iterator that will convert to a list with one item
+    mock_repo.commits.return_value = iter([mock_commit])
 
     mock_github = MagicMock()
     mock_github.repository.return_value = mock_repo
 
     # Mock environment variables
     mock_env_vars = MagicMock()
-    mock_env_vars.github_token = "fake_token"
-    mock_env_vars.github_enterprise_hostname = None
-    mock_env_vars.github_org = "test"
-    mock_env_vars.github_repo = "repo"
+    mock_env_vars.gh_token = "fake_token"  # Change to match field name in main()
+    mock_env_vars.ghe = None  # Change to match field name in main()
+    mock_env_vars.owner = "test"  # Change to match field name in main()
+    mock_env_vars.repo = "repo"  # Change to match field name in main()
     mock_env_vars.gh_app_id = None
     mock_env_vars.gh_app_installation_id = None
     mock_env_vars.gh_app_private_key_bytes = None
     mock_env_vars.gh_app_enterprise_only = False
     mock_env_vars.report_title = "Test Report"
     mock_env_vars.output_file = "test_output.md"
+    mock_env_vars.owning_team = None  # Add owning_team field that's used in main()
+    mock_env_vars.chunk_size = 100  # Add chunk_size to avoid issues in processing loops
 
     # Apply mocks
     with patch("measure_innersource.get_env_vars", return_value=mock_env_vars), patch(
@@ -144,18 +147,24 @@ def test_main_missing_user_in_org_chart(tmp_path, monkeypatch):
                 call[0][0] for call in mock_logger.info.call_args_list if call[0]
             ]
 
-            # Should have logged about reading org data and analyzing first
-            # commit, but should NOT have logged about original commit author
-            # with manager
+            # Should have logged about reading org data and finding original commit author
+            # but should NOT have logged about original commit author with manager
             assert "Reading in org data from org-data.json..." in info_calls
-            assert "Analyzing first commit..." in info_calls
-
-            # Should NOT contain the log message about
+            assert (
+                "Finding original commit author..." in info_calls
+            )  # Should NOT contain the log message about
             # "Original commit author: X, with manager: Y"
             assert not any(
                 isinstance(msg, str)
                 and "Original commit author:" in msg
                 and "with manager:" in msg
+                for msg in info_calls
+            )
+
+            # Verify that the function exited without attempting to process pull requests or issues
+            # by checking that "Processing pull requests" message is not in the logs
+            assert not any(
+                isinstance(msg, str) and "Processing pull requests" in msg
                 for msg in info_calls
             )
 
@@ -189,7 +198,7 @@ def test_contributors_missing_from_org_chart_excluded(tmp_path, monkeypatch):
 
     mock_repo = MagicMock()
     mock_repo.full_name = "test/repo"
-    mock_repo.commits.return_value = [mock_commit]
+    mock_repo.commits.return_value = iter([mock_commit])
     mock_repo.contributors.return_value = [mock_contributor1]
     # Mock empty pull requests and issues to avoid infinite loops
     mock_repo.pull_requests.return_value = iter([])
@@ -200,16 +209,17 @@ def test_contributors_missing_from_org_chart_excluded(tmp_path, monkeypatch):
 
     # Mock environment variables
     mock_env_vars = MagicMock()
-    mock_env_vars.github_token = "fake_token"
-    mock_env_vars.github_enterprise_hostname = None
-    mock_env_vars.github_org = "test"
-    mock_env_vars.github_repo = "repo"
+    mock_env_vars.gh_token = "fake_token"  # Change to match field name in main()
+    mock_env_vars.ghe = None  # Change to match field name in main()
+    mock_env_vars.owner = "test"  # Change to match field name in main()
+    mock_env_vars.repo = "repo"  # Change to match field name in main()
     mock_env_vars.gh_app_id = None
     mock_env_vars.gh_app_installation_id = None
     mock_env_vars.gh_app_private_key_bytes = None
     mock_env_vars.gh_app_enterprise_only = False
     mock_env_vars.report_title = "Test Report"
     mock_env_vars.output_file = "test_output.md"
+    mock_env_vars.owning_team = None  # Add owning_team field that's used in main()
     mock_env_vars.chunk_size = 100
 
     # Apply mocks

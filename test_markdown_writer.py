@@ -29,6 +29,7 @@ class TestWriteToMarkdown(unittest.TestCase):
         write_to_markdown(
             report_title="InnerSource Report",
             output_file="innersource_report.md",
+            team_ownership_explicitly_specified=False,
         )
 
         # Check that the function writes the correct markdown file
@@ -63,6 +64,7 @@ class TestWriteToMarkdown(unittest.TestCase):
             innersource_contributors=innersource_contributors,
             innersource_contribution_counts=innersource_counts,
             team_member_contribution_counts=team_member_counts,
+            team_ownership_explicitly_specified=False,
         )
 
         # Check that the function writes the correct markdown file
@@ -96,7 +98,7 @@ class TestWriteToMarkdown(unittest.TestCase):
         """Test that write_to_markdown uses the default filename when none is provided."""
         # Call the function with no output_file
         write_to_markdown(
-            report_title="InnerSource Report",
+            report_title="InnerSource Report", team_ownership_explicitly_specified=False
         )
 
         # Check that the function uses the default filename
