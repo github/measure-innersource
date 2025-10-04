@@ -130,6 +130,7 @@ class TestCaseInsensitiveLookupIntegration(unittest.TestCase):
         mock_write,
         mock_get_env_vars,
         mock_auth,
+        _mock_evaluate,
     ):
         """Test that username lookups in org-data.json are case-insensitive."""
         # Create a temporary org-data.json file with lowercase username
