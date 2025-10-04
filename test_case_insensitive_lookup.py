@@ -107,15 +107,16 @@ class TestCaseInsensitiveDict(unittest.TestCase):
         self.assertEqual(len(values), 4)
 
     def test_duplicate_case_insensitive_keys(self):
-        """Test that ValueError is raised for duplicate case-insensitive keys."""
+        """Test behavior with duplicate case-insensitive keys."""
         duplicate_data = {
             "alice": {"manager": "bob"},
             "Alice": {"manager": "charlie"},  # Duplicate!
         }
-        with self.assertRaises(ValueError) as context:
-            CaseInsensitiveDict(duplicate_data)
-        self.assertIn("Duplicate case-insensitive keys found", str(context.exception))
-        self.assertIn("alice", str(context.exception).lower())
+        # requests.structures.CaseInsensitiveDict handles duplicates by keeping the last value
+        ci_dict = CaseInsensitiveDict(duplicate_data)
+        # Both lowercase and mixed case should return the same value (the last one)
+        self.assertEqual(ci_dict["alice"], {"manager": "charlie"})
+        self.assertEqual(ci_dict["Alice"], {"manager": "charlie"})
 
 
 class TestCaseInsensitiveLookupIntegration(unittest.TestCase):
