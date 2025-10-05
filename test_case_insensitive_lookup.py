@@ -153,6 +153,7 @@ class TestCaseInsensitiveLookupIntegration(unittest.TestCase):
         mock_env.gh_app_private_key_bytes = None
         mock_env.gh_app_enterprise_only = False
         mock_env.chunk_size = 100
+        mock_env.owning_team = None  # Force using original commit author path
         mock_get_env_vars.return_value = mock_env
 
         # Mock GitHub connection and repository
@@ -166,7 +167,7 @@ class TestCaseInsensitiveLookupIntegration(unittest.TestCase):
         # Mock first commit with different case username
         mock_commit = MagicMock()
         mock_commit.author.login = "Jeffrey-Luszcz"  # Different case!
-        mock_repo.commits.return_value = [mock_commit]
+        mock_repo.commits.return_value = iter([mock_commit])
 
         # Mock contributors with different case
         mock_contributor = MagicMock()
