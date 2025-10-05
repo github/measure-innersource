@@ -214,6 +214,17 @@ The tool determines team boundaries using this algorithm:
    - Are managers of anyone in the team
 4. **Classify Contributors**: Any contributor not in the team list is considered an InnerSource contributor
 
+**Overriding Team Determination**: You can override this algorithm by setting the `OWNING_TEAM` environment variable with a comma-separated list of GitHub usernames. When set, these users will be considered the owning team, and the algorithm above will be bypassed. This is useful when:
+- The first commit author doesn't accurately represent the current owning team
+- The org chart doesn't align with actual repository ownership
+- You want to explicitly define team boundaries
+
+Example:
+```yaml
+env:
+  OWNING_TEAM: "alice,bob,charlie"
+```
+
 #### Example Team Boundary Calculation
 
 <details>
@@ -517,6 +528,40 @@ jobs:
           CHUNK_SIZE: "100"
 ```
 
+#### Using Custom Team Ownership
+
+To override the automatic team determination and explicitly specify the owning team:
+
+```yaml
+name: InnerSource with Custom Team
+
+on:
+  schedule:
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+
+jobs:
+  measure-innersource:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Measure InnerSource
+        uses: github/measure-innersource@v1
+        env:
+          REPOSITORY: "org/repository"
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          OWNING_TEAM: "alice,bob,charlie,david"
+          REPORT_TITLE: "InnerSource Report with Custom Team"
+```
+
+This is useful when:
+- The first commit author doesn't represent the current team
+- The org chart doesn't align with actual ownership
+- You want to explicitly define team boundaries
+
+
 ### Configuration
 
 Below are the allowed configuration options:
@@ -550,6 +595,7 @@ This action can be configured to authenticate with GitHub App Installation or Pe
 | `REPORT_TITLE`      | False    | `"InnerSource Report"`  | Title to have on the report issue.                                                                                                    |
 | `REPOSITORY`        | True     | `""`                    | The name of the repository you are trying to measure. Format `owner/repo` ie. `github/measure-innersource`                            |
 | `CHUNK_SIZE`        | False    | `100`                   | Number of items to process at once when fetching data. Increasing can improve performance but uses more memory. Minimum value is 10.  |
+| `OWNING_TEAM`       | False    | `""`                    | Comma-separated list of GitHub usernames that own the repository. Overrides the built-in team determination algorithm. Example: `alice,bob,charlie` |
 
 ## Understanding the Results
 
@@ -709,6 +755,7 @@ The tool automatically splits large files, but you can:
 - [ ] `OUTPUT_FILE` (default: "innersource_report.md")
 - [ ] `CHUNK_SIZE` (default: 100, minimum: 10)
 - [ ] `RATE_LIMIT_BYPASS` (default: false)
+- [ ] `OWNING_TEAM` (comma-separated usernames to override team determination)
 
 #### File Requirements Checklist
 

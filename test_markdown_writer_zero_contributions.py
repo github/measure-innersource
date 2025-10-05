@@ -49,6 +49,7 @@ class TestWriteToMarkdownZeroContributions:
                     "team_member1": 0,
                     "team_member2": 0,
                 },  # All zero counts
+                team_ownership_explicitly_specified=False,
             )
 
             # Read the generated file

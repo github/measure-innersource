@@ -46,6 +46,7 @@ class TestWriteToMarkdownMoreEdgeCases:
                 innersource_contributors=["contributor1"],
                 innersource_contribution_counts=None,  # Empty contribution counts
                 team_member_contribution_counts={},  # Empty dict for team member counts
+                team_ownership_explicitly_specified=False,
             )
 
             # Read the generated file

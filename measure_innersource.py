@@ -101,6 +101,7 @@ def main():  # pragma: no cover
     repo = env_vars.repo
     report_title = env_vars.report_title
     output_file = env_vars.output_file
+    owning_team = env_vars.owning_team
     # rate_limit_bypass = env_vars.rate_limit_bypass
 
     ghe = env_vars.ghe
@@ -166,67 +167,87 @@ def main():  # pragma: no cover
         innersource_contributors = []
         team_members_that_own_the_repo = []
 
-        logger.info("Analyzing first commit...")
-        commits = repo_data.commits()
-        # Paginate to the last page to get the oldest commit
-        # commits is a GitHubIterator, so you can use .count to get total,
-        # then get the last one
-        commit_list = list(commits)
-        first_commit = commit_list[-1]  # The last in the list is the oldest
-        original_commit_author = first_commit.author.login
+        # Check if owning team is explicitly specified
+        if owning_team:
+            logger.info("Using explicitly specified owning team: %s", owning_team)
+            team_members_that_own_the_repo = owning_team
+            # Set variables to None since they're not used when team is specified
+            original_commit_author = None
+            original_commit_author_manager = None
+        else:
+            logger.info("Finding original commit author...")
+            # We need to find the oldest commit for team determination
+            # Use GitHub's default chronological ordering (oldest first)
+            commits_iterator = repo_data.commits()
+            original_commit = None
 
-        # Check if original commit author exists in org chart
-        if original_commit_author not in org_data:
-            logger.warning(
-                "Original commit author '%s' not found in org chart. "
-                "Cannot determine team boundaries for InnerSource "
-                "measurement.",
+            # Process just enough commits to find the oldest one
+            # Most repos will only need a single API call since GitHub sorts oldest first
+            # For repositories with unusual commit ordering, we'll get the first commit from the first page
+            try:
+                original_commit = next(commits_iterator)
+                original_commit_author = (
+                    original_commit.author.login
+                    if hasattr(original_commit.author, "login")
+                    else None
+                )
+                logger.info("Found original commit by %s", original_commit_author)
+            except StopIteration:
+                logger.warning("No commits found in repository")
+                original_commit_author = None
+
+            # Check if original commit author exists in org chart
+            if original_commit_author not in org_data:
+                logger.warning(
+                    "Original commit author '%s' not found in org chart. "
+                    "Cannot determine team boundaries for InnerSource "
+                    "measurement.",
+                    original_commit_author,
+                )
+                return
+
+            original_commit_author_manager = org_data[original_commit_author]["manager"]
+            logger.info(
+                "Original commit author: %s, with manager: %s",
                 original_commit_author,
+                original_commit_author_manager,
             )
-            return
+            # Create a dictionary mapping users to their managers for faster lookups
+            user_to_manager = {}
+            manager_to_reports = {}
 
-        original_commit_author_manager = org_data[original_commit_author]["manager"]
-        logger.info(
-            "Original commit author: %s, with manager: %s",
-            original_commit_author,
-            original_commit_author_manager,
-        )
-        # Create a dictionary mapping users to their managers for faster lookups
-        user_to_manager = {}
-        manager_to_reports = {}
+            for user, data in org_data.items():
+                manager = data["manager"]
+                user_to_manager[user] = manager
 
-        for user, data in org_data.items():
-            manager = data["manager"]
-            user_to_manager[user] = manager
+                # Also create reverse mapping of manager to direct reports
+                if manager not in manager_to_reports:
+                    manager_to_reports[manager] = []
+                manager_to_reports[manager].append(user)
 
-            # Also create reverse mapping of manager to direct reports
-            if manager not in manager_to_reports:
-                manager_to_reports[manager] = []
-            manager_to_reports[manager].append(user)
+            # Find all users that report up to the same manager as the original commit author
+            team_members_that_own_the_repo.append(original_commit_author)
+            team_members_that_own_the_repo.append(original_commit_author_manager)
 
-        # Find all users that report up to the same manager as the original commit author
-        team_members_that_own_the_repo.append(original_commit_author)
-        team_members_that_own_the_repo.append(original_commit_author_manager)
+            # Add all users reporting to the same manager
+            if original_commit_author_manager in manager_to_reports:
+                team_members_that_own_the_repo.extend(
+                    manager_to_reports[original_commit_author_manager]
+                )
 
-        # Add all users reporting to the same manager
-        if original_commit_author_manager in manager_to_reports:
-            team_members_that_own_the_repo.extend(
-                manager_to_reports[original_commit_author_manager]
+            # Add everyone that has one of the team members listed as their manager
+            for user, manager in user_to_manager.items():
+                if (
+                    manager in team_members_that_own_the_repo
+                    and user not in team_members_that_own_the_repo
+                ):
+                    team_members_that_own_the_repo.append(user)
+
+            # Remove duplicates from the team members list
+            team_members_that_own_the_repo = list(set(team_members_that_own_the_repo))
+            logger.debug(
+                "Team members that own the repo: %s", team_members_that_own_the_repo
             )
-
-        # Add everyone that has one of the team members listed as their manager
-        for user, manager in user_to_manager.items():
-            if (
-                manager in team_members_that_own_the_repo
-                and user not in team_members_that_own_the_repo
-            ):
-                team_members_that_own_the_repo.append(user)
-
-        # Remove duplicates from the team members list
-        team_members_that_own_the_repo = list(set(team_members_that_own_the_repo))
-        logger.debug(
-            "Team members that own the repo: %s", team_members_that_own_the_repo
-        )
 
         # For each contributor, check if they are in the team that owns the repo list
         # and if not, add them to the innersource contributors list
@@ -258,13 +279,38 @@ def main():  # pragma: no cover
 
         logger.info("Pre-processing contribution data...")
 
-        # Create mapping of commit authors to commit counts
-        logger.info("Processing commits...")
+        # Process commits in chunks
+        logger.info("Processing commits in chunks...")
         commit_author_counts = {}
-        for commit in commit_list:
-            if hasattr(commit.author, "login"):
-                author = commit.author.login
-                commit_author_counts[author] = commit_author_counts.get(author, 0) + 1
+        total_commits = 0
+
+        # GitHub API returns an iterator that internally handles pagination
+        # We'll manually chunk it to avoid loading everything at once
+        commits_iterator = repo_data.commits()
+        while True:
+            # Process a chunk of commits
+            chunk = []
+            for _ in range(chunk_size):
+                try:
+                    chunk.append(next(commits_iterator))
+                except StopIteration:
+                    break
+
+            if not chunk:
+                break
+
+            # Update counts for this chunk
+            for commit in chunk:
+                if hasattr(commit.author, "login"):
+                    author = commit.author.login
+                    commit_author_counts[author] = (
+                        commit_author_counts.get(author, 0) + 1
+                    )
+
+            total_commits += len(chunk)
+            logger.debug("  Processed %s commits so far...", total_commits)
+
+        logger.info("Found and processed %s commits", total_commits)
 
         # Process pull requests in chunks
         logger.info("Processing pull requests in chunks...")
@@ -405,6 +451,9 @@ def main():  # pragma: no cover
             innersource_contributors=innersource_contributors,
             innersource_contribution_counts=innersource_contribution_counts,
             team_member_contribution_counts=team_member_contribution_counts,
+            team_ownership_explicitly_specified=bool(
+                owning_team
+            ),  # True if owning_team is specified
         )
 
         evaluate_markdown_file_size(output_file)
