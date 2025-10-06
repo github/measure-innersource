@@ -16,6 +16,7 @@ from constants import GITHUB_ISSUE_BODY_MAX_CHARS
 from logging_config import get_logger, setup_logging
 from markdown_helpers import markdown_too_large_for_issue_body, split_markdown_file
 from markdown_writer import write_to_markdown
+from requests.structures import CaseInsensitiveDict
 
 
 def evaluate_markdown_file_size(output_file: str) -> None:
@@ -144,7 +145,9 @@ def main():  # pragma: no cover
         if org_data_path.exists():
             logger.info("Reading in org data from org-data.json...")
             with open(org_data_path, "r", encoding="utf-8") as org_file:
-                org_data = json.load(org_file)
+                raw_org_data = json.load(org_file)
+            # Wrap org_data in case-insensitive dictionary for username lookups
+            org_data = CaseInsensitiveDict(raw_org_data)
             logger.info("Org data read successfully.")
         else:
             logger.warning(
