@@ -121,10 +121,11 @@ def test_main_missing_user_in_org_chart(tmp_path, monkeypatch):
     mock_env_vars.chunk_size = 100  # Add chunk_size to avoid issues in processing loops
 
     # Apply mocks
-    with patch("measure_innersource.get_env_vars", return_value=mock_env_vars), patch(
-        "measure_innersource.auth_to_github", return_value=mock_github
-    ), patch("measure_innersource.setup_logging") as mock_setup_logging:
-
+    with (
+        patch("measure_innersource.get_env_vars", return_value=mock_env_vars),
+        patch("measure_innersource.auth_to_github", return_value=mock_github),
+        patch("measure_innersource.setup_logging") as mock_setup_logging,
+    ):
         # Configure logging to capture our test
         mock_logger = MagicMock()
         mock_setup_logging.return_value = mock_logger
@@ -223,14 +224,13 @@ def test_contributors_missing_from_org_chart_excluded(tmp_path, monkeypatch):
     mock_env_vars.chunk_size = 100
 
     # Apply mocks
-    with patch("measure_innersource.get_env_vars", return_value=mock_env_vars), patch(
-        "measure_innersource.auth_to_github", return_value=mock_github
-    ), patch("measure_innersource.setup_logging") as mock_setup_logging, patch(
-        "measure_innersource.write_to_markdown"
-    ), patch(
-        "measure_innersource.evaluate_markdown_file_size"
+    with (
+        patch("measure_innersource.get_env_vars", return_value=mock_env_vars),
+        patch("measure_innersource.auth_to_github", return_value=mock_github),
+        patch("measure_innersource.setup_logging") as mock_setup_logging,
+        patch("measure_innersource.write_to_markdown"),
+        patch("measure_innersource.evaluate_markdown_file_size"),
     ):
-
         # Configure logging to capture our test
         mock_logger = MagicMock()
         mock_setup_logging.return_value = mock_logger
