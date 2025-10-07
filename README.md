@@ -61,7 +61,7 @@ interface OrgData {
 
 **Field Descriptions:**
 
-- `username` (string): The GitHub username of the employee (case-sensitive)
+- `username` (string): The GitHub username of the employee (case-insensitive matching)
 - `manager` (string): The GitHub username of the employee's direct manager
 
 #### Comprehensive org-data.json Examples
@@ -190,7 +190,7 @@ interface OrgData {
 
 1. **All Contributors Must Be Included**: Every GitHub username that appears in the repository's contributor list must have an entry in org-data.json
 2. **Manager Chain**: Managers should also be included in the org-data.json file with their own manager relationships
-3. **Case Sensitivity**: GitHub usernames are case-sensitive and must match exactly
+3. **Case Insensitivity**: GitHub usernames are matched case-insensitively, so "username", "UserName", and "USERNAME" are treated as the same
 4. **JSON Validity**: The file must be valid JSON format
 5. **UTF-8 Encoding**: The file should be saved with UTF-8 encoding
 
@@ -253,7 +253,7 @@ If Alice created the repository:
 
 **Common Issues:**
 
-1. **Username Mismatch**: Ensure GitHub usernames match exactly (case-sensitive)
+1. **Username Mismatch**: Usernames are matched case-insensitively, but ensure usernames exist in org-data.json
 2. **Missing Contributors**: All repository contributors must be in org-data.json
 3. **Invalid JSON**: Validate JSON syntax using online validators
 4. **Manager Loops**: Avoid circular manager relationships
@@ -692,7 +692,7 @@ The tool determines team ownership by:
      }
    }
    ```
-2. Verify GitHub usernames are spelled correctly (case-sensitive)
+2. Verify GitHub usernames are spelled correctly (matched case-insensitively)
 3. Include bot accounts if needed (they're auto-excluded if containing "[bot]")
 
 #### Memory and Performance Issues
@@ -762,7 +762,7 @@ The tool automatically splits large files, but you can:
 - [ ] `org-data.json` exists in repository root
 - [ ] `org-data.json` is valid JSON
 - [ ] All repository contributors are included in org-data.json
-- [ ] GitHub usernames match exactly (case-sensitive)
+- [ ] GitHub usernames are included in org-data.json (case-insensitive matching)
 - [ ] Manager relationships are defined for all users
 
 ### Debugging Steps
