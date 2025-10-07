@@ -17,4 +17,3 @@ lint:
 	pylint --rcfile=.github/linters/.python-lint --fail-under=9.0 *.py
 	mypy --config-file=.github/linters/.mypy.ini *.py
 	black .
-	ruff format
