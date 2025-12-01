@@ -215,11 +215,13 @@ The tool determines team boundaries using this algorithm:
 4. **Classify Contributors**: Any contributor not in the team list is considered an InnerSource contributor
 
 **Overriding Team Determination**: You can override this algorithm by setting the `OWNING_TEAM` environment variable with a comma-separated list of GitHub usernames. When set, these users will be considered the owning team, and the algorithm above will be bypassed. This is useful when:
+
 - The first commit author doesn't accurately represent the current owning team
 - The org chart doesn't align with actual repository ownership
 - You want to explicitly define team boundaries
 
 Example:
+
 ```yaml
 env:
   OWNING_TEAM: "alice,bob,charlie"
@@ -557,10 +559,10 @@ jobs:
 ```
 
 This is useful when:
+
 - The first commit author doesn't represent the current team
 - The org chart doesn't align with actual ownership
 - You want to explicitly define team boundaries
-
 
 ### Configuration
 
@@ -587,14 +589,14 @@ This action can be configured to authenticate with GitHub App Installation or Pe
 
 #### Other Configuration Options
 
-| field               | required | default                 | description                                                                                                                           |
-| ------------------- | -------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `GH_ENTERPRISE_URL` | False    | `""`                    | URL of GitHub Enterprise instance to use for auth instead of github.com                                                               |
-| `RATE_LIMIT_BYPASS` | False    | `false`                 | If set to `true`, the rate limit will be bypassed. This is useful if being run on an local GitHub server with rate limiting disabled. |
-| `OUTPUT_FILE`       | False    | `innersource_report.md` | Output filename.                                                                                                                      |
-| `REPORT_TITLE`      | False    | `"InnerSource Report"`  | Title to have on the report issue.                                                                                                    |
-| `REPOSITORY`        | True     | `""`                    | The name of the repository you are trying to measure. Format `owner/repo` ie. `github/measure-innersource`                            |
-| `CHUNK_SIZE`        | False    | `100`                   | Number of items to process at once when fetching data. Increasing can improve performance but uses more memory. Minimum value is 10.  |
+| field               | required | default                 | description                                                                                                                                         |
+| ------------------- | -------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GH_ENTERPRISE_URL` | False    | `""`                    | URL of GitHub Enterprise instance to use for auth instead of github.com                                                                             |
+| `RATE_LIMIT_BYPASS` | False    | `false`                 | If set to `true`, the rate limit will be bypassed. This is useful if being run on an local GitHub server with rate limiting disabled.               |
+| `OUTPUT_FILE`       | False    | `innersource_report.md` | Output filename.                                                                                                                                    |
+| `REPORT_TITLE`      | False    | `"InnerSource Report"`  | Title to have on the report issue.                                                                                                                  |
+| `REPOSITORY`        | True     | `""`                    | The name of the repository you are trying to measure. Format `owner/repo` ie. `github/measure-innersource`                                          |
+| `CHUNK_SIZE`        | False    | `100`                   | Number of items to process at once when fetching data. Increasing can improve performance but uses more memory. Minimum value is 10.                |
 | `OWNING_TEAM`       | False    | `""`                    | Comma-separated list of GitHub usernames that own the repository. Overrides the built-in team determination algorithm. Example: `alice,bob,charlie` |
 
 ## Understanding the Results
@@ -768,6 +770,7 @@ The tool automatically splits large files, but you can:
 ### Debugging Steps
 
 1. **Enable Verbose Logging**: The tool prints progress messages. Monitor the logs for:
+
    - Successful authentication
    - Repository access confirmation
    - Org data loading
@@ -802,6 +805,7 @@ The tool automatically splits large files, but you can:
    ```
 
 2. **Use GitHub App Authentication**:
+
    - Higher rate limits (5,000 requests/hour vs 1,000)
    - More reliable for large-scale operations
 
