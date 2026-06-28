@@ -164,6 +164,35 @@ class TestAuthToGithub(unittest.TestCase):
         mock_integration.get_access_token.assert_called_once_with(67890)
         self.assertEqual(result, dummy_token)
 
+    @patch("auth.GithubIntegration")
+    @patch("auth.Auth.AppAuth")
+    def test_get_github_app_installation_token_with_ghe(
+        self, mock_app_auth_cls, mock_integration_cls
+    ):
+        """
+        Test the get_github_app_installation_token function with a GHE URL.
+        """
+        dummy_token = "ghetoken"
+        mock_app_auth = MagicMock()
+        mock_app_auth_cls.return_value = mock_app_auth
+
+        mock_integration = MagicMock()
+        mock_integration_cls.return_value = mock_integration
+        mock_access_token = MagicMock()
+        mock_access_token.token = dummy_token
+        mock_integration.get_access_token.return_value = mock_access_token
+
+        result = get_github_app_installation_token(
+            "https://github.example.com", "12345", b"gh_private_token", "67890"
+        )
+
+        mock_app_auth_cls.assert_called_once_with(12345, "gh_private_token")
+        mock_integration_cls.assert_called_once_with(
+            auth=mock_app_auth, base_url="https://github.example.com/api/v3"
+        )
+        mock_integration.get_access_token.assert_called_once_with(67890)
+        self.assertEqual(result, dummy_token)
+
     @patch("auth.Auth.AppAuth")
     def test_get_github_app_installation_token_request_failure(self, mock_app_auth_cls):
         """

@@ -130,8 +130,9 @@ def main():  # pragma: no cover
 
         # fetch repository data
         logger.info("Fetching repository data for %s/%s...", owner, repo)
-        repo_data = github_connection.get_repo(f"{owner}/{repo}")
-        if not repo_data:
+        try:
+            repo_data = github_connection.get_repo(f"{owner}/{repo}")
+        except Exception:  # pylint: disable=broad-exception-caught
             logger.error(
                 "Unable to fetch repository %s/%s specified. Exiting.", owner, repo
             )
