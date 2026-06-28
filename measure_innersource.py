@@ -130,7 +130,7 @@ def main():  # pragma: no cover
 
         # fetch repository data
         logger.info("Fetching repository data for %s/%s...", owner, repo)
-        repo_data = github_connection.repository(owner, repo)
+        repo_data = github_connection.get_repo(f"{owner}/{repo}")
         if not repo_data:
             logger.error(
                 "Unable to fetch repository %s/%s specified. Exiting.", owner, repo
@@ -178,7 +178,7 @@ def main():  # pragma: no cover
             logger.info("Finding original commit author...")
             # We need to find the oldest commit for team determination
             # Use GitHub's default chronological ordering (oldest first)
-            commits_iterator = repo_data.commits()
+            commits_iterator = iter(repo_data.get_commits())
             original_commit = None
 
             # Process just enough commits to find the oldest one
@@ -252,7 +252,7 @@ def main():  # pragma: no cover
         # For each contributor, check if they are in the team that owns the repo list
         # and if not, add them to the innersource contributors list
         logger.info("Analyzing all contributors in the repository...")
-        for contributor in repo_data.contributors():
+        for contributor in repo_data.get_contributors():
             all_contributors.append(contributor.login)
 
             # Check if contributor is not found in org chart
@@ -286,7 +286,7 @@ def main():  # pragma: no cover
 
         # GitHub API returns an iterator that internally handles pagination
         # We'll manually chunk it to avoid loading everything at once
-        commits_iterator = repo_data.commits()
+        commits_iterator = iter(repo_data.get_commits())
         while True:
             # Process a chunk of commits
             chunk = []
@@ -319,7 +319,7 @@ def main():  # pragma: no cover
 
         # GitHub API returns an iterator that internally handles pagination
         # We'll manually chunk it to avoid loading everything at once
-        pulls_iterator = repo_data.pull_requests(state="all")
+        pulls_iterator = iter(repo_data.get_pulls(state="all"))
         while True:
             # Process a chunk of pull requests
             chunk = []
@@ -350,7 +350,7 @@ def main():  # pragma: no cover
 
         # GitHub API returns an iterator that internally handles pagination
         # We'll manually chunk it to avoid loading everything at once
-        issues_iterator = repo_data.issues(state="all")
+        issues_iterator = iter(repo_data.get_issues(state="all"))
         while True:
             # Process a chunk of issues
             chunk = []
