@@ -161,22 +161,22 @@ class TestCaseInsensitiveLookupIntegration(unittest.TestCase):
         mock_auth.return_value = mock_github
 
         mock_repo = MagicMock()
-        mock_github.repository.return_value = mock_repo
+        mock_github.get_repo.return_value = mock_repo
         mock_repo.full_name = "test_owner/test_repo"
 
         # Mock first commit with different case username
         mock_commit = MagicMock()
         mock_commit.author.login = "Jeffrey-Luszcz"  # Different case!
-        mock_repo.commits.return_value = iter([mock_commit])
+        mock_repo.get_commits.return_value = [mock_commit]
 
         # Mock contributors with different case
         mock_contributor = MagicMock()
         mock_contributor.login = "Jeffrey-Luszcz"
-        mock_repo.contributors.return_value = [mock_contributor]
+        mock_repo.get_contributors.return_value = [mock_contributor]
 
         # Mock PRs and issues (empty for simplicity)
-        mock_repo.pull_requests.return_value = iter([])
-        mock_repo.issues.return_value = iter([])
+        mock_repo.get_pulls.return_value = []
+        mock_repo.get_issues.return_value = []
 
         # Create temp directory for org-data.json
         with tempfile.TemporaryDirectory() as tmpdir:

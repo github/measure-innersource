@@ -100,10 +100,10 @@ def test_main_missing_user_in_org_chart(tmp_path, monkeypatch):
 
     # Mock commits to return our mock commit as the first/oldest commit
     # Create a proper iterator that will convert to a list with one item
-    mock_repo.commits.return_value = iter([mock_commit])
+    mock_repo.get_commits.return_value = [mock_commit]
 
     mock_github = MagicMock()
-    mock_github.repository.return_value = mock_repo
+    mock_github.get_repo.return_value = mock_repo
 
     # Mock environment variables
     mock_env_vars = MagicMock()
@@ -199,14 +199,13 @@ def test_contributors_missing_from_org_chart_excluded(tmp_path, monkeypatch):
 
     mock_repo = MagicMock()
     mock_repo.full_name = "test/repo"
-    mock_repo.commits.return_value = iter([mock_commit])
-    mock_repo.contributors.return_value = [mock_contributor1]
-    # Mock empty pull requests and issues to avoid infinite loops
-    mock_repo.pull_requests.return_value = iter([])
-    mock_repo.issues.return_value = iter([])
+    mock_repo.get_commits.return_value = [mock_commit]
+    mock_repo.get_contributors.return_value = [mock_contributor1]
+    mock_repo.get_pulls.return_value = []
+    mock_repo.get_issues.return_value = []
 
     mock_github = MagicMock()
-    mock_github.repository.return_value = mock_repo
+    mock_github.get_repo.return_value = mock_repo
 
     # Mock environment variables
     mock_env_vars = MagicMock()

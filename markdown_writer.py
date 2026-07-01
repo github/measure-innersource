@@ -57,7 +57,7 @@ def write_to_markdown(
         innersource_ratio (float | None, optional): The calculated ratio of InnerSource
                                                    contributions to total contributions.
                                                    Should be a float between 0 and 1.
-        repo_data (github3.repos.Repository | None, optional): The GitHub repository
+        repo_data (github.Repository.Repository | None, optional): The GitHub repository
                                                                object containing repository
                                                                metadata. If None, generates
                                                                a minimal report.
