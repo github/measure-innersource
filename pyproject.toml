@@ -5,7 +5,7 @@ description = "GitHub Action that measures InnerSource collaboration in a GitHub
 requires-python = ">=3.11"
 dependencies = [
     "PyGithub>=2.6.0",
-    "python-dotenv==1.2.2",
+    "python-dotenv==1.2.3",
     "requests==2.34.2",
 ]
 
